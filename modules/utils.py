@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import random
-from pathlib import Path
 from astropy.io import ascii
 import math
 

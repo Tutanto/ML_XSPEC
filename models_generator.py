@@ -1,5 +1,4 @@
 import datetime
-import numpy as np
 import astropy.units as u
 from xspec import AllModels, AllData, Model, Plot
 from pathlib import Path
