@@ -43,6 +43,9 @@ from astropy.table import Table
 from modules.utils import plot_random_sample, process_ipac_files
 from modules.logging_config import logging_conf
 
+# Set the size of the Dataset
+N = 100
+
 # Set up paths for logs and models
 cwd = Path.cwd()
 path_to_logs = Path(cwd / "logs")
@@ -67,7 +70,7 @@ logger.debug(f"Model used: {model.componentNames}")
 
 # Create a Latin Hypercube sampler for model parameters
 sampler = qmc.LatinHypercube(d=model.nParameters)
-sample = sampler.random(n=10)
+sample = sampler.random(n=N)
 
 # Extract lower and upper bounds, and parameter names for scaling
 l_bounds, u_bounds, par_names = [], [], []
@@ -112,7 +115,7 @@ for idx, params in enumerate(sample_scaled):
     table.meta['comments'] = [
         'Parameters used to generate the data:',
         f'Parameter names: {", ".join(par_names)}',
-        f'Values: {", ".join(map(lambda x: f"{x:.8g}", params))}'
+        f'Values: {", ".join(map(lambda x: f"{x:.9g}", params))}'
     ]
 
     # Create the file name based on parameter values
@@ -128,4 +131,4 @@ logger.debug("Script completed.")
 plot_random_sample(path_to_models, n_plots_per_row=3)
 
 # Process the generated models and display grouped data
-process_ipac_files(path_to_models)
+res = process_ipac_files(path_to_models)

@@ -96,15 +96,24 @@ def process_ipac_files(models_folder_path):
         # Read data from the .ipac file using astropy.ascii
         table = ascii.read(filepath, format='ipac')
 
+        # Merge the last two comments if there are more than three comments
+        if len(table.meta['comments']) > 3:
+            merge = f"{table.meta['comments'][-2]} {table.meta['comments'][-1]}"
+            table.meta['comments'][-2:] = [merge]
+
         # Extract parameters from the comments in the metadata
         parameters = {}
-        for comment in table.meta['comments']:
-            if 'Parameter names' in comment:
-                # Extract parameter names and values
-                param_names = comment.split(': ')[-1].split(', ')
-            elif 'Values' in comment:
-                # Convert parameter values to float and store in a list
-                param_values = [float(value) for value in comment.split(': ')[-1].split(', ')]
+        try:
+            for comment in table.meta['comments']:
+                if 'Parameter names' in comment:
+                    # Extract parameter names
+                    param_names = comment.split(': ')[-1].split(', ')
+                elif 'Values' in comment:
+                    # Convert parameter values to float and store in a list
+                    param_values = [float(value) for value in comment.split(': ')[-1].split(', ')]
+        except ValueError as ve:
+            # Handle the ValueError gracefully
+            print(f"Caught a ValueError while processing {filepath}: {ve}")
 
         # Create a dictionary mapping parameter names to their values
         parameters = dict(zip(param_names, param_values))
