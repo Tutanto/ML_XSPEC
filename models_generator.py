@@ -1,3 +1,32 @@
+"""
+Script: model_generation_script.py
+
+Description:
+    This script generates and saves synthetic spectral models using the XSPEC library. It creates a Latin Hypercube
+    sampler to sample parameters for a diskline model and then scales the samples to fit the parameter bounds.
+    The script iterates through the scaled samples, sets up XSPEC models with the sampled parameters, and saves
+    the generated models as IPAC format tables.
+
+Dependencies:
+    - Python 3.x
+    - XSPEC (XSPEC models and data fitting library)
+    - Astropy (for handling units and table creation)
+    - SciPy (for Latin Hypercube sampling)
+    - Modules (custom modules: utils, logging_config)
+
+Usage:
+    1. Ensure that all dependencies are installed.
+    2. Run the script.
+
+Outputs:
+    - IPAC format tables containing synthetic spectral models, saved in the 'models' directory.
+    - Log files are saved in the 'logs' directory.
+
+Author: Antonio Tutone
+Date: 20/11/2023
+"""
+
+# Import necessary libraries
 import datetime
 import astropy.units as u
 from xspec import AllModels, AllData, Model, Plot
@@ -6,6 +35,7 @@ from scipy.stats import qmc
 from astropy.io import ascii
 from astropy.table import Table
 
+# Import custom modules
 from modules.utils import plot_random_sample
 from modules.logging_config import logging_conf
 
@@ -33,7 +63,7 @@ logger.debug(f"Model used: {model.componentNames}")
 
 # Create a Latin Hypercube sampler for model parameters
 sampler = qmc.LatinHypercube(d=model.nParameters)
-sample = sampler.random(n=500)
+sample = sampler.random(n=10)
 
 # Extract lower and upper bounds, and parameter names for scaling
 l_bounds, u_bounds, par_names = [], [], []
@@ -78,7 +108,7 @@ for idx, params in enumerate(sample_scaled):
     table.meta['comments'] = [
         'Parameters used to generate the data:',
         f'Parameter names: {", ".join(par_names)}',
-        f'Values: {", ".join(map(str, params))}'
+        f'Values: {", ".join(map(lambda x: f"{x:.8g}", params))}'
     ]
 
     # Create the file name based on parameter values
@@ -90,4 +120,5 @@ for idx, params in enumerate(sample_scaled):
 # Debug: Log the end of the script
 logger.debug("Script completed.")
 
+# Plot random sample of generated models
 plot_random_sample(path_to_models, n_plots_per_row=3)
