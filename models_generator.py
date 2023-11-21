@@ -5,14 +5,16 @@ Description:
     This script generates and saves synthetic spectral models using the XSPEC library. It creates a Latin Hypercube
     sampler to sample parameters for a diskline model and then scales the samples to fit the parameter bounds.
     The script iterates through the scaled samples, sets up XSPEC models with the sampled parameters, and saves
-    the generated models as IPAC format tables.
+    the generated models as IPAC format tables. Finally, it processes these IPAC files to create a grouped and
+    aggregated DataFrame.
 
 Dependencies:
     - Python 3.x
     - XSPEC (XSPEC models and data fitting library)
     - Astropy (for handling units and table creation)
     - SciPy (for Latin Hypercube sampling)
-    - Modules (custom modules: utils, logging_config)
+    - Matplotlib (for plotting)
+    - Pandas (for data manipulation)
 
 Usage:
     1. Ensure that all dependencies are installed.
@@ -21,9 +23,11 @@ Usage:
 Outputs:
     - IPAC format tables containing synthetic spectral models, saved in the 'models' directory.
     - Log files are saved in the 'logs' directory.
+    - A random sample of generated models is plotted in an array of plots.
+    - Grouped and aggregated data from IPAC files is stored in a Pandas DataFrame.
 
 Author: Antonio Tutone
-Date: 20/11/2023
+Date: 21/11/2023
 """
 
 # Import necessary libraries
@@ -36,7 +40,7 @@ from astropy.io import ascii
 from astropy.table import Table
 
 # Import custom modules
-from modules.utils import plot_random_sample
+from modules.utils import plot_random_sample, process_ipac_files
 from modules.logging_config import logging_conf
 
 # Set up paths for logs and models
@@ -122,3 +126,6 @@ logger.debug("Script completed.")
 
 # Plot random sample of generated models
 plot_random_sample(path_to_models, n_plots_per_row=3)
+
+# Process the generated models and display grouped data
+process_ipac_files(path_to_models)
