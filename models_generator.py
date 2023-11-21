@@ -44,7 +44,7 @@ from modules.utils import plot_random_sample, process_ipac_files
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 100
+N = 1000
 
 # Set up paths for logs and models
 cwd = Path.cwd()
