@@ -33,6 +33,7 @@ Date: 21/11/2023
 # Import necessary libraries
 import datetime
 import astropy.units as u
+import numpy as np
 from xspec import AllModels, AllData, Model, Plot
 from pathlib import Path
 from scipy.stats import qmc
@@ -44,7 +45,7 @@ from modules.utils import plot_random_sample, process_ipac_files
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 1000
+N = 10000
 
 # Set up paths for logs and models
 cwd = Path.cwd()
@@ -74,7 +75,11 @@ sample = sampler.random(n=N)
 
 # Extract lower and upper bounds, and parameter names for scaling
 l_bounds, u_bounds, par_names = [], [], []
-for n_par in range(1, model.nParameters + 1):
+l_bounds.append(0.0)
+u_bounds.append(10.)
+par_names.append('LineE')
+
+for n_par in range(2, model.nParameters + 1):
     l_bounds.append(model(n_par).values[2])
     u_bounds.append(model(n_par).values[-1])
     par_names.append(model(n_par).name)
@@ -92,7 +97,7 @@ for idx, params in enumerate(sample_scaled):
     # Clear existing XSPEC models and data
     AllModels.clear()
     AllData.clear()
-    AllData.dummyrsp(0.1 ,110.)
+    AllData.dummyrsp(0.1 ,11.)
 
     # Initialize the diskline model with the scaled parameters
     m = Model("diskline", setPars=(list(params)))
@@ -107,6 +112,13 @@ for idx, params in enumerate(sample_scaled):
     Plot('model')
     energy = Plot.x()
     flux = Plot.model()
+
+    # Smooth the data by averaging every 'm' consecutive points
+    energy = np.array(energy)
+    flux = np.array(flux)
+    m = 10
+    energy = energy.reshape(-1, m).mean(axis=1)
+    flux = flux.reshape(-1, m).mean(axis=1)
 
     # Create a table with energy and flux
     table = Table([energy * u.keV, flux / (u.cm**2 * u.s * u.keV)], names=['Energy', 'Flux'])
