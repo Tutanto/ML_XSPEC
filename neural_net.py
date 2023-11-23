@@ -24,7 +24,7 @@ X_flux_array = np.array(X_flux)
 X_train_flux, X_temp_flux, y_train, y_temp = train_test_split(X_flux_array, y_params, test_size=0.3, random_state=42)
 X_val_flux, X_test_flux, y_val, y_test = train_test_split(X_temp_flux, y_temp, test_size=0.5, random_state=42)
 
-# Standardize the Flux distributions
+# Normalize the Flux distributions
 scaler_x = MinMaxScaler()
 X_train_scaled = scaler_x.fit_transform(X_train_flux)
 X_val_scaled = scaler_x.transform(X_val_flux)
@@ -41,8 +41,6 @@ model = Sequential()
 model.add(Dense(1024, input_dim=X_train_scaled.shape[1], activation='relu'))
 #model.add(Dropout(0.3))
 #model.add(BatchNormalization())
-#model.add(Dense(512, activation='relu'))
-#model.add(Dense(256, activation='relu'))
 model.add(Dense(128, activation='relu'))
 model.add(Dense(64, activation='relu'))
 model.add(Dense(32, activation='relu'))
