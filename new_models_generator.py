@@ -31,21 +31,25 @@ Date: 21/11/2023
 """
 
 # Import necessary libraries
+import json
 import datetime
-import astropy.units as u
 import numpy as np
 from xspec import AllModels, AllData, Model, Plot
 from pathlib import Path
 from scipy.stats import qmc
-from astropy.io import ascii
-from astropy.table import Table
 
 # Import custom modules
-from modules.utils import plot_random_sample, process_ipac_files
+from modules.utils import (
+    generate_latin_hypercube, 
+    indices_satisfying_condition,
+    plot_random_sample, 
+    process_json_files)
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 100
+N = 10
+# Set smoothing
+smoothing = False
 
 # Set up paths for logs and models
 cwd = Path.cwd()
@@ -66,34 +70,59 @@ logger = logging_conf(path_to_logs, f"models_creator_{timestamp}.log")
 logger.debug("Script started.")
 
 # Create the model
-model_name = "TBfeo*(rdblur*rfxconv*comptb + diskbb + comptb)"
+model_name = "TBabs*(rdblur*rfxconv*comptb + diskbb + comptb)"
 model = Model(model_name)
 logger.debug(f"Model name: {model_name}")
 logger.debug(f"Model used: {model.componentNames}")
 
 # Changing default frozen parameters to unfrozen
 model.rdblur.Betor10.frozen = False
-model.rdblur.Rout_M.frozen = False
+model.rdblur.Rout_M.frozen = True
+model.rdblur.Rin_M.frozen = False
 model.rfxconv.Fe_abund.frozen = False
+model.comptb.gamma.frozen = True
+model.comptb.delta.frozen = True
+model.comptb.log_A.frozen = True
+
+# Fixing values, upper and lower limits
+model.TBabs.nH.values = [1.0, 0.01, 0.01, 0.01, 10.0, 10.0]
+model.rdblur.Betor10.values = [-2, 0.02, -10.0,-10.0, 0,0]
+model.rfxconv.rel_refl.values = [-1.0, 0.01, -1, -1, 0, 0]
+model.rfxconv.log_xi.values = [1.0, 0.01, 1.0, 1.0, 4.0, 4.0]
+model.comptb.alpha.values = [2, 0.02, 0, 0, 3, 3]
+model.comptb.kTe.values = [5, 0.05, 5, 5, 1000, 1000]
+
+# Linking the parameters
+model.rfxconv.cosIncl.link = "COSD(5)"
+# Linking comptb_6 (refletion) parameters to comptb (comptb)
+start = 20  # Number of the first parameter of comptb_6
+for i in range(start, start + len(model.comptb_6.parameterNames)):
+    model(i).link = model(i-9) # 9 is the separation between comptb and comptb_6
 
 # Collect the relevant parameter (the ones not frozen or linked)
-unlink_params = model.nParameters - len(model.comptb_6.parameterNames)
 relevant_par = []
-for n_par in range(1, unlink_params + 1):
-    if not model(n_par).frozen:
+for n_par in range(1, model.nParameters + 1):
+    if not model(n_par).frozen and not model(n_par).link:
         relevant_par.append(n_par)
 
-# Create a Latin Hypercube sampler for model parameters
-sampler = qmc.LatinHypercube(d=len(relevant_par))
-sample = sampler.random(n=N)
 
 # Extract lower and upper bounds, and parameter names for scaling
 l_bounds, u_bounds, par_names = [], [], []
 
 for n_par in relevant_par:
+    # Append the values
     l_bounds.append(model(n_par).values[3]) #bot
     u_bounds.append(model(n_par).values[4]) #top
     par_names.append(model(n_par).name)
+
+# Define a condition function (e.g., elements greater than 5)
+condition_func = lambda x: x == 'Tin' or x == 'kTe'
+
+# Get the indices where the condition is satisfied
+result_indices = indices_satisfying_condition(par_names, condition_func)
+
+# Create a Latin Hypercube sampler for model parameters
+sample = generate_latin_hypercube(d=len(relevant_par), linked=result_indices, n=N)
 
 logger.debug(f"Components in the model: {par_names}")
 # Scale the sample to fit parameter bounds
@@ -115,13 +144,21 @@ for idx, params in enumerate(sample_scaled):
 
     # Changing default frozen parameters to unfrozen
     m.rdblur.Betor10.frozen = False
-    m.rdblur.Rout_M.frozen = False
+    m.rdblur.Rout_M.frozen = True
+    m.rdblur.Rin_M.frozen = False
     m.rfxconv.Fe_abund.frozen = False
+    m.comptb.gamma.frozen = True
+    m.comptb.delta.frozen = True
+    m.comptb.log_A.frozen = True
 
+    m.rdblur.Rout_M.values = 1000
+    m.comptb.log_A.values = 8
+
+    m.rfxconv.cosIncl.link = "COSD(5)"
     # Linking comptb_6 (refletion) parameters to comptb (comptb)
-    start = 23  # Number of the first parameter of comptb_6
+    start = 20  # Number of the first parameter of comptb_6
     for i in range(start, start + len(m.comptb_6.parameterNames)):
-        m(i).link = m(i-18) # 18 is the separation between comptb and comptb_6
+        m(i).link = m(i-9) # 9 is the separation between comptb and comptb_6
 
     # Add the model to the spectral analysis system
     AllModels.setPars(m)
@@ -134,28 +171,35 @@ for idx, params in enumerate(sample_scaled):
     energy = Plot.x()
     flux = Plot.model()
 
-    # Smooth the data by averaging every 'm' consecutive points
-    energy = np.array(energy)
-    flux = np.array(flux)
-    m = 10
-    energy = energy.reshape(-1, m).mean(axis=1)
-    flux = flux.reshape(-1, m).mean(axis=1)
+    # Smooth the data by averaging every 'n_points' consecutive points
+    if smoothing:
+        energy = np.array(energy)
+        flux = np.array(flux)
+        n_points = 10
+        energy = energy.reshape(-1, n_points).mean(axis=1)
+        flux = flux.reshape(-1, n_points).mean(axis=1)
 
-    # Create a table with energy and flux
-    table = Table([energy * u.keV, flux / (u.cm**2 * u.s * u.keV)], names=['Energy', 'Flux'])
+    # Create a dictionary for the parameters
+    params_dict = {}
+    for i in range(1, m.nParameters+1):
+        params_dict[m(i).name] = m(i).values[0]
+    
+    # Store parameters and data in a dictionary
+    data = {
+        'parameters' : params_dict,
+        'energy (keV)': energy,
+        'flux (1 / keV cm^-2 s)': flux
+    }
 
-    # Add comments to the table metadata
-    table.meta['comments'] = [
-        'Parameters used to generate the data:',
-        f'Parameter names: {", ".join(par_names)}',
-        f'Values: {", ".join(map(lambda x: f"{x:.9g}", params))}'
-    ]
+    if len(params) < 6:
+        # Create the file name based on parameter values
+        file_name = f"model_{idx:04d}_params" + "_".join([f"{format(param, '.1e')}" for param in params])
+    else:
+        file_name = f"model_{idx:04d}"
 
-    # Create the file name based on parameter values
-    file_name = f"model_{idx:04d}_params" + "_".join([f"{format(param, '.1e')}" for param in params]) + ".ipac"
-
-    # Save the table in Ipac format with the created file name
-    ascii.write(table, path_to_models / file_name, format='ipac', overwrite=True)
+    # Save the dictionary as json with the created file name
+    with open( path_to_models / f'{file_name}.json', 'w') as json_file:
+        json.dump(data, json_file)
 
 # Debug: Log the end of the script
 logger.debug("Script completed.")
@@ -164,4 +208,4 @@ logger.debug("Script completed.")
 plot_random_sample(path_to_models, n_plots_per_row=3)
 
 # Process the generated models and display grouped data
-res = process_ipac_files(path_to_models)
+res = process_json_files(path_to_models)

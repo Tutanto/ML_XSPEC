@@ -1,18 +1,79 @@
 import math
+import json
 import random
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from pathlib import Path
-from astropy.io import ascii
+from scipy.stats import qmc
 
+def generate_latin_hypercube(d, linked, n=10, seed=None):
+    """
+    Generate a Latin Hypercube sample for model parameters.
+
+    Parameters:
+    - d (int): The dimensionality of the Latin Hypercube.
+    - linked (list): A list representing linked parameters where the second parameter
+                     should always be less than the first one.
+    - n (int): The number of samples to generate. Default is 10.
+    - seed (int): Seed for reproducibility. Default is None.
+
+    Returns:
+    - parameters (numpy.ndarray): The Latin Hypercube sample with shape (n, d).
+    """
+    # Input validation
+    if not isinstance(d, int) or d <= 0:
+        raise ValueError("The dimensionality 'd' must be a positive integer.")
+    
+    if not isinstance(linked, list) or len(linked) != 2:
+        raise ValueError("The 'linked' parameter must be a list of two indices.")
+    
+    if not isinstance(n, int) or n <= 0:
+        raise ValueError("The number of samples 'n' must be a positive integer.")
+
+    # Set the seed for reproducibility
+    np.random.seed(seed)
+
+    # Create a Latin Hypercube sampler for model parameters
+    sampler = qmc.LatinHypercube(d=d)
+
+    # Generate a Latin Hypercube sample
+    parameters = sampler.random(n=n)
+
+    # Ensure the second parameter is always less than the first one
+    parameters[:, linked[1]] = parameters[:, linked[0]] * parameters[:, linked[1]]
+
+    return parameters
+# Example usage:
+#latin_hypercube_sample = generate_latin_hypercube(n=10, seed=42)
+#print("Latin Hypercube Sample:")
+#print(latin_hypercube_sample)
+
+def indices_satisfying_condition(my_list, condition_func):
+    """
+    Return indices of elements in the list satisfying a given condition.
+
+    Parameters:
+    - my_list (list): The input list.
+    - condition_func (function): The condition function that takes an element as input
+                                and returns a boolean indicating whether the condition is satisfied.
+
+    Returns:
+    - indices (list): The list of indices where the condition is satisfied.
+    """
+    # Input validation
+    if not callable(condition_func):
+        raise ValueError("The 'condition_func' parameter must be a callable function.")
+    
+    return [index for index, element in enumerate(my_list) if condition_func(element)]
 
 def plot_random_sample(path_to_models, n_plots_per_row=3):
     """
-    Reads a random sample of ASCII files and plots them in an array of plots.
+    Reads a random sample of JSON files and plots them in an array of plots.
 
     Parameters:
-    - path_to_models (Path): Path to the directory containing the ASCII files.
+    - path_to_models (Path): Path to the directory containing the JSON files.
     - n_plots_per_row (int): Number of plots to display per row.
 
     Returns:
@@ -28,10 +89,10 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
         raise ValueError("Invalid value for n_plots_per_row. Please provide a positive integer.")
     
     # Get a list of all ASCII files in the specified directory
-    ascii_files = list(path_to_models.glob("model_*.ipac"))
+    json_files = list(path_to_models.glob("model_*.json"))
 
     # Randomly select n_plots_per_row^2 files from the list
-    selected_files = random.sample(ascii_files, n_plots_per_row**2)
+    selected_files = random.sample(json_files, n_plots_per_row**2)
 
     # Calculate the number of rows needed
     n_rows = int(math.ceil(len(selected_files) / n_plots_per_row))
@@ -41,12 +102,13 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
 
     # Iterate through selected files and plot each one
     for i, file_path in enumerate(selected_files):
-        # Read the table from the ASCII file
-        table = ascii.read(file_path)
+        # Read the JSON data from the file
+        with open(file_path, 'r') as json_file:
+            json_data = json.load(json_file)
 
-        # Extract energy and flux from the table
-        energy = table['Energy']
-        flux = table['Flux']
+        # Extract energy and flux from the JSON data (replace 'Energy' and 'Flux' with your actual keys)
+        energy = json_data['energy (keV)']
+        flux = json_data['flux (1 / keV cm^-2 s)']
 
         # Get the name of the model from the file path
         model_name = file_path.stem
@@ -58,6 +120,7 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
         # Plot the data on the corresponding subplot
         axes[row_index, col_index].plot(energy, flux, label=f"Model: {model_name[:10]}")
         axes[row_index, col_index].set_xlabel('Energy (keV)')
+        axes[row_index, col_index].set_xscale('log')
         axes[row_index, col_index].set_ylabel('Flux (cm^2/s/keV)')
         axes[row_index, col_index].legend()
 
@@ -69,16 +132,17 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
 # path_to_models = Path("/path/to/models")
 # plot_random_sample(path_to_models, n_plots_per_row=3)
 
-def process_ipac_files(models_folder_path):
+def process_json_files(models_folder_path):
     """
-    Process .ipac files in the specified directory.
+    Process .json files in the specified directory.
 
-    This function reads data from .ipac files, extracts parameters from comments in the metadata,
-    and creates a Pandas DataFrame for each model. It then concatenates all DataFrames into a
-    single DataFrame, and groups the data by parameters while aggregating arrays.
+    This function reads data from .json files, extracts parameters and arrays,
+    and creates a Pandas DataFrame for each model. It then concatenates all
+    DataFrames into a single DataFrame, and groups the data by parameters while
+    aggregating arrays.
 
     Parameters:
-    - models_folder_path (str): Path to the directory containing the .ipac files.
+    - models_folder_path (str): Path to the directory containing the .json files.
 
     Returns:
     - grouped_data (pd.DataFrame): The grouped and aggregated data stored in a DataFrame.
@@ -91,39 +155,19 @@ def process_ipac_files(models_folder_path):
     # Create a list to store individual DataFrames for each model
     data_frames = []
 
-    # Iterate over each .ipac file in the specified directory
-    for filepath in models_folder_path.glob("*.ipac"):
-        # Read data from the .ipac file using astropy.ascii
-        table = ascii.read(filepath, format='ipac')
+    # Iterate over each .json file in the specified directory
+    for filepath in models_folder_path.glob("*.json"):
+        # Read data from the .json file
+        with open(filepath, 'r') as file:
+            data = json.load(file)
 
-        # Merge the last two comments if there are more than three comments
-        if len(table.meta['comments']) > 3:
-            merge = f"{table.meta['comments'][-2]} {table.meta['comments'][-1]}"
-            table.meta['comments'][-2:] = [merge]
-
-        # Extract parameters from the comments in the metadata
-        parameters = {}
-        try:
-            for comment in table.meta['comments']:
-                if 'Parameter names' in comment:
-                    # Extract parameter names
-                    param_names = comment.split(': ')[-1].split(', ')
-                elif 'Values' in comment:
-                    # Convert parameter values to float and store in a list
-                    param_values = [float(value) for value in comment.split(': ')[-1].split(', ')]
-        except ValueError as ve:
-            # Handle the ValueError gracefully
-            print(f"Caught a ValueError while processing {filepath}: {ve}")
-
-        # Create a dictionary mapping parameter names to their values
-        parameters = dict(zip(param_names, param_values))
-
-        # Extract energy and flux data from the table
-        energy = table['Energy']
-        flux = table['Flux']
+        # Extract parameters and arrays from the JSON data
+        parameters = data['parameters']
+        energy = data['energy (keV)']
+        flux = data['flux (1 / keV cm^-2 s)']
 
         # Create a DataFrame for this model with Energy and Flux as lists
-        model_data = pd.DataFrame({'Energy': [energy], 'Flux': [flux]})
+        model_data = pd.DataFrame({'Energy': energy, 'Flux': flux})
 
         # Add parameters as columns in the DataFrame
         for param_name, param_value in parameters.items():
@@ -135,12 +179,17 @@ def process_ipac_files(models_folder_path):
     # Concatenate all DataFrames into a single DataFrame
     full_data = pd.concat(data_frames, ignore_index=True)
 
-    # Group by parameters and aggregate arrays by summing them
-    grouped_data = full_data.groupby(param_names).agg({'Energy': 'sum', 'Flux': 'sum'}).reset_index()
+    # Convert parameters.keys() to a list before using it in groupby
+    # Group by parameters and aggregate arrays by collecting them in lists
+    grouped_data = full_data.groupby(list(parameters.keys())).agg({
+        'Energy': lambda x: list(x),
+        'Flux': lambda x: list(x)
+    }).reset_index()
+
 
     return grouped_data
 
 # Example usage:
 # models_folder_path = "/path/to/models"
-# result = process_ipac_files(models_folder_path)
+# result = process_json_files(models_folder_path)
 # print(result)
