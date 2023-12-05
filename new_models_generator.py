@@ -21,7 +21,7 @@ Usage:
     2. Run the script.
 
 Outputs:
-    - IPAC format tables containing synthetic spectral models, saved in the 'models' directory.
+    - JSON format files containing synthetic spectral models, saved in the 'models' directory.
     - Log files are saved in the 'logs' directory.
     - A random sample of generated models is plotted in an array of plots.
     - Grouped and aggregated data from IPAC files is stored in a Pandas DataFrame.
@@ -41,7 +41,7 @@ from scipy.stats import qmc
 # Import custom modules
 from modules.utils import (
     generate_latin_hypercube, 
-    indices_satisfying_condition,
+    indices_satisfying_condition, 
     plot_random_sample, 
     process_json_files)
 from modules.logging_config import logging_conf
@@ -104,7 +104,6 @@ relevant_par = []
 for n_par in range(1, model.nParameters + 1):
     if not model(n_par).frozen and not model(n_par).link:
         relevant_par.append(n_par)
-
 
 # Extract lower and upper bounds, and parameter names for scaling
 l_bounds, u_bounds, par_names = [], [], []
