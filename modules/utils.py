@@ -1,3 +1,4 @@
+import re
 import math
 import json
 import random
@@ -7,6 +8,13 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 from scipy.stats import qmc
+
+def extract_number(filename):
+    match = re.search(r'split_(\d+)-\d+\.npy', filename)
+    if match:
+        return int(match.group(1))
+    else:
+        return None
 
 # Function to save the last successful index to a file
 def save_last_successful_index(index, file_path):
