@@ -8,6 +8,19 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from scipy.stats import qmc
 
+# Function to save the last successful index to a file
+def save_last_successful_index(index, file_path):
+    with open(file_path, 'w') as file:
+        file.write(str(index))
+
+# Function to read the last successful index from a file
+def read_last_successful_index(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return int(file.read())
+    except FileNotFoundError:
+        return 0  # If the file does not exist, start from the beginning
+
 def generate_latin_hypercube(d, linked, n=10, seed=None):
     """
     Generate a Latin Hypercube sample for model parameters.
