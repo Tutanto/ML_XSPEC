@@ -65,9 +65,9 @@ if __name__ == "__main__":
         last_successful_index = 0
         
     # Iterate through scaled samples to set up and save models
-    for i, params in enumerate(sample_scaled[:2]):
+    for index, params in enumerate(sample_scaled):
 
-        idx = i + extracted_number
+        idx = index + extracted_number
         
         if idx < last_successful_index:
             continue  # Skip already processed samples
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                 json.dump(data, json_file)
         
             # Save the current index as the last successful one
-                save_last_successful_index(i, index_file_path)
+                save_last_successful_index(index, index_file_path)
         
         except Exception as e:
             logger.error(f"An error occurred at index {idx}: {e}")
