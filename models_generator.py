@@ -144,7 +144,7 @@ if __name__ == "__main__":
                 json.dump(data, json_file)
         
             # Save the current index as the last successful one
-                save_last_successful_index(index, index_file_path)
+            save_last_successful_index(idx, index_file_path)
         
         except Exception as e:
             logger.error(f"An error occurred at index {idx}: {e}")
