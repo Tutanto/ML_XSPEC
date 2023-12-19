@@ -1,9 +1,9 @@
 import re
 import math
 import json
+import h5py
 import random
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 from pathlib import Path
@@ -153,64 +153,60 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
 # path_to_models = Path("/path/to/models")
 # plot_random_sample(path_to_models, n_plots_per_row=3)
 
-def process_json_files(models_folder_path):
+def process_json_files_batch(models_folder_path, batch_size=1000):
     """
-    Process .json files in the specified directory.
-
-    This function reads data from .json files, extracts parameters and arrays,
-    and creates a Pandas DataFrame for each model. It then concatenates all
-    DataFrames into a single DataFrame, and groups the data by parameters while
-    aggregating arrays.
+    Process .json files in batches.
 
     Parameters:
-    - models_folder_path (str): Path to the directory containing the .json files.
+    - models_folder_path (Path): Path object pointing to the directory containing the .json files.
+    - batch_size (int): Number of files to process in each batch.
 
-    Returns:
-    - grouped_data (pd.DataFrame): The grouped and aggregated data stored in a DataFrame.
+    Yields processed data in batches.
     """
-    # Validate that the provided path is a directory
-    models_folder_path = Path(models_folder_path)
-    if not models_folder_path.is_dir():
-        raise ValueError("Invalid directory path. Please provide a valid directory path.")
+    if not isinstance(models_folder_path, Path) or not models_folder_path.is_dir():
+        raise ValueError("Invalid directory path. Please provide a valid Path object pointing to a directory.")
 
-    # Create a list to store individual DataFrames for each model
-    data_frames = []
+    batch_flux = []
+    batch_params = []
+    count = 0
 
     # Iterate over each .json file in the specified directory
-    for filepath in models_folder_path.glob("*.json"):
-        # Read data from the .json file
+    sorted_models = np.sort(list(models_folder_path.glob("*.json")))
+    for filepath in sorted_models:
         with open(filepath, 'r') as file:
             data = json.load(file)
 
-        # Extract parameters and arrays from the JSON data
-        parameters = data['parameters']
-        energy = data['energy (keV)']
-        flux = data['flux (1 / keV cm^-2 s)']
+        batch_flux.append(data['flux (1 / keV cm^-2 s)'])
+        batch_params.append(list(data['parameters'].values()))
 
-        # Create a DataFrame for this model with Energy and Flux as lists
-        model_data = pd.DataFrame({'Energy': energy, 'Flux': flux})
+        count += 1
+        if count >= batch_size:
+            yield (batch_flux, batch_params)
+            batch_flux, batch_params = [], []
+            count = 0
 
-        # Add parameters as columns in the DataFrame
-        for param_name, param_value in parameters.items():
-            model_data[param_name] = float(param_value)
+    # Yield any remaining data
+    if batch_flux and batch_params:
+        yield (batch_flux, batch_params)
+    
+def combine_hdf5_files(file_pattern):
+    """
+    Combine data from multiple HDF5 files.
 
-        # Append the DataFrame for this model to the list
-        data_frames.append(model_data)
+    Parameters:
+    - file_pattern (str): The Path for the HDF5 filenames.
 
-    # Concatenate all DataFrames into a single DataFrame
-    full_data = pd.concat(data_frames, ignore_index=True)
+    Returns:
+    - combined_flux (np.ndarray): Combined flux data from all files.
+    - combined_params (np.ndarray): Combined parameter data from all files.
+    """
+    combined_flux = []
+    combined_params = []
 
-    # Convert parameters.keys() to a list before using it in groupby
-    # Group by parameters and aggregate arrays by collecting them in lists
-    grouped_data = full_data.groupby(list(parameters.keys())).agg({
-        'Energy': lambda x: list(x),
-        'Flux': lambda x: list(x)
-    }).reset_index()
+    # Iterate over each .json file in the specified directory
+    for i in np.sort(list(file_pattern.glob("*.h5"))):
+        with h5py.File(i, 'r') as hf:
+            combined_flux.extend(hf['flux'][:])
+            combined_params.extend(hf['params'][:])
 
-
-    return grouped_data
-
-# Example usage:
-# models_folder_path = "/path/to/models"
-# result = process_json_files(models_folder_path)
-# print(result)
+    return np.array(combined_flux, dtype=object), np.array(combined_params, dtype=object)
