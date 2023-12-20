@@ -210,3 +210,11 @@ def combine_hdf5_files(file_pattern):
             combined_params.extend(hf['params'][:])
 
     return np.array(combined_flux, dtype=object), np.array(combined_params, dtype=object)
+
+# Function to remove columns with identical values across all rows
+def remove_uniform_columns(data):
+    columns_to_remove = []
+    for i in range(data.shape[1]):
+        if np.all(data[:, i] == data[0, i]):
+            columns_to_remove.append(i)
+    return np.delete(data, columns_to_remove, axis=1), columns_to_remove
