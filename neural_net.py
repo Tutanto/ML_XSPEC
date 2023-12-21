@@ -76,7 +76,7 @@ X_val_flux, X_test_flux, y_val, y_test = train_test_split(
     )
 
 # Define the neural network model
-model = Sequential()
+'''model = Sequential()
 model.add(Dense(1024, input_dim=X_train_flux.shape[1], activation='relu', kernel_initializer=HeNormal()))
 model.add(Dropout(0.5))
 model.add(BatchNormalization())
@@ -89,11 +89,16 @@ model.add(BatchNormalization())
 model.add(Dense(128, activation='relu', kernel_initializer=HeNormal()))
 model.add(Dropout(0.5))
 model.add(BatchNormalization())
-model.add(Dense(y_train.shape[1], activation='linear'))  # Output layer with the number of parameters as neurons
+model.add(Dense(y_train.shape[1], activation='linear'))'''  # Output layer with the number of parameters as neurons
+model = Sequential()
+model.add(Dense(256, input_dim=X_train_flux.shape[1], activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(128, activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(64, activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(y_train.shape[1], activation='linear'))
 
 # Compile the model
 model.compile(
-    optimizer=Adam(learning_rate=0.0001, clipnorm=1.0), 
+    optimizer=Adam(learning_rate=0.000001, clipnorm=1.0), 
     loss='mean_squared_logarithmic_error', 
     metrics=['mean_squared_error', 'mean_absolute_error', 
              'mean_absolute_percentage_error', adjusted_r_squared] # List of metrics
@@ -107,7 +112,7 @@ tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 history = model.fit(
     X_train_flux, y_train,
     validation_data=(X_val_flux, y_val), 
-    epochs=150, batch_size=150,
+    epochs=200, batch_size=100,
     callbacks=[tensorboard_callback],
     verbose=1
 )
@@ -118,7 +123,7 @@ print(f"Test MAE: {test_mae}, Test MSE: {test_mse}")
 print(f'Score: {model.metrics_names[0]} of {test_loss}')
 
 history_df = pd.DataFrame(history.history)
-history_df.loc[:, ['loss', 'val_loss']].plot()
+history_df.loc[20:, ['loss', 'val_loss']].plot()
 history_df.loc[:, ['mean_absolute_error', 'val_mean_absolute_error']].plot()
 history_df.loc[:, ['mean_squared_error', 'val_mean_squared_error']].plot()
 history_df.loc[:, ['mean_absolute_percentage_error', 'val_mean_absolute_percentage_error']].plot()

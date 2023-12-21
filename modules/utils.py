@@ -171,7 +171,8 @@ def process_json_files_batch(models_folder_path, batch_size=1000):
     count = 0
 
     # Iterate over each .json file in the specified directory
-    sorted_models = np.sort(list(models_folder_path.glob("*.json")))
+    sorted_models = list(models_folder_path.glob("*.json"))
+    random.shuffle(sorted_models)
     for filepath in sorted_models:
         with open(filepath, 'r') as file:
             data = json.load(file)
