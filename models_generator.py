@@ -79,7 +79,7 @@ if __name__ == "__main__":
             # Clear existing XSPEC models and data
             AllModels.clear()
             AllData.clear()
-            AllData.dummyrsp(0.1 ,100.)
+            AllData.dummyrsp(0.7 ,100.)
 
             # Initialize the model with the scaled parameters
             m = Model(model_name, setPars={int(relevant_par[j]):params[j] for j in range(len(relevant_par))})

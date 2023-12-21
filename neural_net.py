@@ -32,7 +32,7 @@ def adjusted_r_squared(y_true, y_pred):
 
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-path_to_models = Path(Path.cwd() / 'models')
+path_to_models = Path(Path.cwd() / 'models_0.1-100')
 path_to_logs = Path(Path.cwd() / 'logs')
 path_to_batches = Path(Path.cwd() / 'batches')
 path_to_batches.mkdir(parents=True, exist_ok=True)
@@ -77,23 +77,23 @@ X_val_flux, X_test_flux, y_val, y_test = train_test_split(
 
 # Define the neural network model
 model = Sequential()
-model.add(Dense(128, input_dim=X_train_flux.shape[1], activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(1024, input_dim=X_train_flux.shape[1], activation='relu', kernel_initializer=HeNormal()))
 model.add(Dropout(0.5))
 model.add(BatchNormalization())
-model.add(Dense(64, activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
 model.add(Dropout(0.5))
 model.add(BatchNormalization())
-model.add(Dense(32, activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(256, activation='relu', kernel_initializer=HeNormal()))
 model.add(Dropout(0.5))
 model.add(BatchNormalization())
-model.add(Dense(8, activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(128, activation='relu', kernel_initializer=HeNormal()))
 model.add(Dropout(0.5))
 model.add(BatchNormalization())
 model.add(Dense(y_train.shape[1], activation='linear'))  # Output layer with the number of parameters as neurons
 
 # Compile the model
 model.compile(
-    optimizer=Adam(learning_rate=0.001, clipnorm=1.0), 
+    optimizer=Adam(learning_rate=0.0001, clipnorm=1.0), 
     loss='mean_squared_logarithmic_error', 
     metrics=['mean_squared_error', 'mean_absolute_error', 
              'mean_absolute_percentage_error', adjusted_r_squared] # List of metrics
@@ -107,7 +107,7 @@ tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 history = model.fit(
     X_train_flux, y_train,
     validation_data=(X_val_flux, y_val), 
-    epochs=100, batch_size=150,
+    epochs=150, batch_size=150,
     callbacks=[tensorboard_callback],
     verbose=1
 )
