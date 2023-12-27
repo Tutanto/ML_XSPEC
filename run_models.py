@@ -6,7 +6,7 @@ path_to_checkpoints = Path(cwd / "checkpoints")
 
 # Specify the range of split files you want to process
 start_range = 0
-end_range = 30000
+end_range = 3000
 
 # Loop through the split files and execute the command for each one
 for split_start in range(start_range, end_range, 1000):
