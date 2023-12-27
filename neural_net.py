@@ -39,11 +39,14 @@ path_to_batches.mkdir(parents=True, exist_ok=True)
 log_dir = path_to_logs / 'fit'
 log_dir.mkdir(parents=True, exist_ok=True)
 
-# Read the json models in batches
-for i, (flux, params) in enumerate(process_json_files_batch(path_to_models)):
-    with h5py.File(path_to_batches / f'batch_{i}.h5', 'w') as hf:
-        hf.create_dataset('flux', data=flux)
-        hf.create_dataset('params', data=params)
+# Check if any 'batch_*.h5' files already exist
+existing_batches = list(path_to_batches.glob('batch_*.h5'))
+if not existing_batches:
+    # Read the json models in batches
+    for i, (flux, params) in enumerate(process_json_files_batch(path_to_models)):
+        with h5py.File(path_to_batches / f'batch_{i}.h5', 'w') as hf:
+            hf.create_dataset('flux', data=flux)
+            hf.create_dataset('params', data=params)
 
 # Put all the batches together
 all_flux_values, all_parameters = combine_hdf5_files(path_to_batches)
