@@ -109,7 +109,7 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
     if not isinstance(n_plots_per_row, int) or n_plots_per_row <= 0:
         raise ValueError("Invalid value for n_plots_per_row. Please provide a positive integer.")
     
-    # Get a list of all ASCII files in the specified directory
+    # Get a list of all JSONS files in the specified directory
     json_files = list(path_to_models.glob("model_*.json"))
 
     # Randomly select n_plots_per_row^2 files from the list

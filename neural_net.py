@@ -94,9 +94,10 @@ model.add(Dropout(0.5))
 model.add(BatchNormalization())
 model.add(Dense(y_train.shape[1], activation='linear'))'''  # Output layer with the number of parameters as neurons
 model = Sequential()
-model.add(Dense(256, input_dim=X_train_flux.shape[1], activation='relu', kernel_initializer=HeNormal()))
-model.add(Dense(128, activation='relu', kernel_initializer=HeNormal()))
-model.add(Dense(64, activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(1024, input_dim=X_train_flux.shape[1], activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(256, activation='relu', kernel_initializer=HeNormal()))
+model.add(Dense(256, activation='relu', kernel_initializer=HeNormal()))
 model.add(Dense(y_train.shape[1], activation='linear'))
 
 # Compile the model

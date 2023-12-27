@@ -42,7 +42,7 @@ from modules.utils import (
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 10000
+N = 5
 # Set checkpoint file names
 sample_scaled_file_name = 'complete_sample.npy'
 
