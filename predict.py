@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import matplotlib.pyplot as plt
 from joblib import load
 from pathlib import Path
 from tensorflow.keras.models import load_model
@@ -38,5 +39,33 @@ for i,flux in enumerate(fluxes):
     X_new_scaled = X_scaler.transform(flux.reshape(-1, flux.shape[-1])).reshape(flux.shape)
 
     # Make predictions
-    prediction = model.predict(X_new_scaled)
+    prediction = model.predict(X_new_scaled.reshape(1, X_new_scaled.shape[0]))
     predictions.append(Y_scaler.inverse_transform(prediction))
+
+# Ensure that each model's predictions are 2D (num_samples x num_features)
+predictions_array = [pred.squeeze() for pred in predictions]
+predictions_array = [pred.reshape(1, -1) if pred.ndim == 1 else pred for pred in predictions_array]
+
+# Convert to numpy array for easier manipulation
+predictions_array = np.array(predictions_array)
+
+# Diagnostic print statements
+print("Shapes of predictions from each model:")
+for model_idx, pred in enumerate(predictions_array):
+    print(f"Model {model_idx + 1}: {pred.shape}")
+
+# Number of parameters to plot
+num_parameters = relevant_parameters.shape[1]
+
+# Plotting
+plt.figure(figsize=(15, num_parameters * 5))
+
+for i in range(num_parameters):
+    plt.subplot(num_parameters, 1, i + 1)
+    plt.plot(predictions_array[:, 0, i], label=f'Model {model_idx + 1}', linestyle='-')
+    plt.plot(relevant_parameters[:, i], label='True Parameter', linestyle='--')
+    plt.title(f'Parameter {i + 1} Comparison')
+    plt.legend()
+
+plt.tight_layout()
+plt.show()
