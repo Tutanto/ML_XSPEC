@@ -62,11 +62,13 @@ print("Removed Columns Indices:")
 print(removed_columns)
 
 # Normalize flux values
-scaler = StandardScaler()
-X = scaler.fit_transform(all_flux_values.reshape(-1, all_flux_values.shape[-1])).reshape(all_flux_values.shape)
-Y = scaler.fit_transform(relevant_parameters.reshape(-1, relevant_parameters.shape[-1])).reshape(relevant_parameters.shape)
+X_scaler = StandardScaler()
+Y_scaler = StandardScaler()
+X = X_scaler.fit_transform(all_flux_values.reshape(-1, all_flux_values.shape[-1])).reshape(all_flux_values.shape)
+Y = Y_scaler.fit_transform(relevant_parameters.reshape(-1, relevant_parameters.shape[-1])).reshape(relevant_parameters.shape)
 # Save the scaler
-dump(scaler, log_dir / 'scaler.joblib')
+dump(X_scaler, log_dir / 'X_scaler.joblib')
+dump(Y_scaler, log_dir / 'Y_scaler.joblib')
 
 # Parameters for k-fold validation
 k = 5  # Number of folds

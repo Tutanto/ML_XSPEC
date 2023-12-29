@@ -1,4 +1,5 @@
 import json
+import numpy as np
 from joblib import load
 from pathlib import Path
 from tensorflow.keras.models import load_model
@@ -12,11 +13,15 @@ log_dir = path_to_logs / 'fit'
 # Load the model
 model = load_model(log_dir /'my_model.h5')
 # Load the saved scaler
-scaler = load(log_dir / 'scaler.joblib')
+X_scaler = load(log_dir / 'X_scaler.joblib')
+Y_scaler = load(log_dir / 'Y_scaler.joblib')
 
 # Get a list of all JSONS files in the specified directory
 json_files = list(path_to_models.glob("model_*.json"))
 
+fluxes = []
+parameters = []
+predictions = []
 
 for i, file_path in enumerate(json_files):
     # Read the JSON data from the file
@@ -24,14 +29,14 @@ for i, file_path in enumerate(json_files):
         json_data = json.load(json_file)
 
     # Extract energy and flux from the JSON data (replace 'Energy' and 'Flux' with your actual keys)
-    flux = json_data['flux (1 / keV cm^-2 s)']
-    parameters = json_data['parameters']
-    relevant_parameters, removed_columns = remove_uniform_columns(parameters)
+    fluxes.append(np.array(json_data['flux (1 / keV cm^-2 s)']))
+    parameters.append(list(json_data['parameters'].values()))
 
-    X_new_scaled = scaler.transform(flux)
+relevant_parameters, removed_columns = remove_uniform_columns(np.array(parameters))
+
+for i,flux in enumerate(fluxes):
+    X_new_scaled = X_scaler.transform(flux.reshape(-1, flux.shape[-1])).reshape(flux.shape)
 
     # Make predictions
-    predictions = model.predict(X_new_scaled)
-
-    predictions = scaler.inverse_transform(predictions)
-
+    prediction = model.predict(X_new_scaled)
+    predictions.append(Y_scaler.inverse_transform(prediction))
