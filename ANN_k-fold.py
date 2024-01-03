@@ -27,7 +27,7 @@ from modules.utils import (
 from modules.network import (
     calc_mean_std_per_epoch,
     plot_two_metrics,
-    my_model
+    ANN_model
 )
 
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
@@ -89,7 +89,7 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 
-    model = my_model(X_train.shape[1], y_train.shape[1])
+    model = ANN_model(X_train.shape[1], y_train.shape[1])
 
     # Train the model
     history = model.fit(
@@ -110,7 +110,7 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     histories['val_mean_absolute_error'].append(history.history['val_mean_absolute_error'])
     histories['val_loss'].append(history.history['val_loss'])
 
-model.save(log_dir / f'my_model.h5')
+model.save(log_dir / 'my_model.h5')
 history_df = pd.DataFrame(histories)
 
 # Plot loss and val_loss

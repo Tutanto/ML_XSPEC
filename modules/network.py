@@ -18,7 +18,7 @@ def adjusted_r_squared(y_true, y_pred):
 
     return 1 - (1 - r2) * ((n - 1) / (n - p - 1))
 
-def my_model(input_dim, output_dim):
+def ANN_model(input_dim, output_dim):
     # Define the neural network model
     model = Sequential()
     model.add(Dense(1024, input_dim=input_dim, activation='relu', kernel_initializer=HeNormal()))
