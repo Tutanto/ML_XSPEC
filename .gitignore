@@ -1,3 +1,4 @@
+*.joblib
 *.json
 *.npy
 *.h5

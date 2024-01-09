@@ -124,7 +124,8 @@ if __name__ == "__main__":
             # Create a dictionary for the parameters
             params_dict = {}
             for i in range(1, m.nParameters+1):
-                params_dict[m(i).name] = m(i).values[0]
+                if not m(i).frozen and not m(i).link:
+                    params_dict[str(i)] = m(i).values[0]
             
             # Store parameters and data in a dictionary
             data = {

@@ -2,16 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import tensorflow as tf
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, GRU
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.initializers import HeNormal
 from tensorflow.keras.optimizers import Adam
 
-def adjusted_r_squared(y_true, y_pred):
+def r_squared(y_true, y_pred):
     SS_res =  K.sum(K.square(y_true - y_pred)) 
     SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
-    r2 = 1 - SS_res/(SS_tot + K.epsilon())
+
+    return 1 - SS_res/(SS_tot + K.epsilon())
+
+def adjusted_r_squared(y_true, y_pred):
+    r2 = r_squared(y_true, y_pred)
     
     n = tf.cast(tf.shape(y_true)[0], tf.float32)  # Number of data points
     p = tf.cast(tf.shape(y_true)[1], tf.float32)  # Number of predictors/features
@@ -33,6 +37,28 @@ def ANN_model(input_dim, output_dim):
         loss='mean_squared_logarithmic_error', 
         metrics=['mean_squared_error',
                  'mean_absolute_error'] # List of metrics
+        )
+    
+    return model
+
+def GRU_model(input_dim, output_dim):
+    # Define the neural network model
+    model = Sequential()
+    model.add(GRU(units=512, return_sequences=True, input_shape=(input_dim, 1)))
+    model.add(GRU(units=512, return_sequences=True))
+    model.add(GRU(units=512, return_sequences=True))
+    model.add(GRU(units=512, return_sequences=True))
+    model.add(GRU(units=512, return_sequences=True))
+    model.add(GRU(units=512, return_sequences=False))
+    model.add(Dense(output_dim, activation='linear'))
+
+    # Compile the model
+    model.compile(
+        optimizer=Adam(learning_rate=0.000001, clipnorm=1.0), 
+        loss='mean_squared_logarithmic_error',
+        metrics=['mean_absolute_error', 
+                 'mean_squared_error',
+                r_squared] # List of metrics
         )
     
     return model

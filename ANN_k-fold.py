@@ -9,13 +9,8 @@ from pathlib import Path
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 
-import tensorflow as tf
 from tensorflow.keras import backend as K
-from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.initializers import HeNormal
-from tensorflow.keras.optimizers import Adam, SGD, RMSprop
-from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 
 
 from modules.utils import (
