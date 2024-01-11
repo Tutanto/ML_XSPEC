@@ -7,9 +7,8 @@ from joblib import dump
 from pathlib import Path
 
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
-from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import TensorBoard
 
 
@@ -27,7 +26,7 @@ from modules.network import (
 
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-path_to_models = Path(Path.cwd() / 'models_0.1-100')
+path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.7_10k')
 path_to_logs = Path(Path.cwd() / 'logs')
 path_to_batches = Path(Path.cwd() / 'batches')
 path_to_batches.mkdir(parents=True, exist_ok=True)
@@ -56,21 +55,33 @@ print(relevant_parameters)
 print("Removed Columns Indices:")
 print(removed_columns)
 
+# Applica MinMaxScaler per Ogni Colonna (Parametro)
+scalers = {}
+Y = np.zeros_like(relevant_parameters)
+
+for i in range(relevant_parameters.shape[1]):  # Itera attraverso le colonne (parametri)
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    Y[:, i] = scaler.fit_transform(relevant_parameters[:, i].reshape(-1, 1)).flatten()
+    scalers[i] = scaler  # Memorizza il scaler per un uso futuro
+
+# Save each Scaler to a separate file
+for i, scaler in scalers.items():
+    dump(scaler, log_dir / f'scaler_{i}.joblib')
+
 # Normalize flux values
-X_scaler = StandardScaler()
-Y_scaler = StandardScaler()
+X_scaler = MinMaxScaler(feature_range=(0, 1))
 X = X_scaler.fit_transform(all_flux_values.reshape(-1, all_flux_values.shape[-1])).reshape(all_flux_values.shape)
-Y = Y_scaler.fit_transform(relevant_parameters.reshape(-1, relevant_parameters.shape[-1])).reshape(relevant_parameters.shape)
 # Save the scaler
 dump(X_scaler, log_dir / 'X_scaler.joblib')
-dump(Y_scaler, log_dir / 'Y_scaler.joblib')
 
 # Parameters for k-fold validation
 k = 5  # Number of folds
 seed = 42  # Random seed for reproducibility
 # Initialize KFold
 kf = KFold(n_splits=k, shuffle=True, random_state=seed)
-histories = {'mean_absolute_error':[], 'loss':[], 'val_mean_absolute_error':[], 'val_loss':[]}
+histories = {'mean_absolute_error':[], 'mean_squared_error':[], 'r_squared':[],  
+             'loss':[], 'val_mean_absolute_error':[], 'val_mean_squared_error': [], 
+             'val_r_squared':[], 'val_loss':[]}
 
 # Loop over each fold
 for fold, (train_index, val_index) in enumerate(kf.split(X)):
@@ -90,19 +101,23 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val), 
-        epochs=200, batch_size=100,
+        epochs=400, batch_size=100,
         callbacks=[tensorboard_callback],
         verbose=0
     )
 
     # Evaluate the model on the test set
-    test_loss, test_mse, test_mae = model.evaluate(X_val, y_val)
-    print(f"Test MAE: {test_mae}, Test MSE: {test_mse}")
+    test_loss, test_mse, test_mae, test_r2 = model.evaluate(X_val, y_val)
+    print(f"Test MAE: {test_mae}, Test MSE: {test_mse}, Test R2: {test_r2}")
     print(f'Score for fold {fold+1}: {model.metrics_names[0]} of {test_loss}')
 
     histories['mean_absolute_error'].append(history.history['mean_absolute_error'])
+    histories['mean_squared_error'].append(history.history['mean_squared_error'])
+    histories['r_squared'].append(history.history['r_squared'])
     histories['loss'].append(history.history['loss'])
     histories['val_mean_absolute_error'].append(history.history['val_mean_absolute_error'])
+    histories['val_mean_squared_error'].append(history.history['val_mean_squared_error'])
+    histories['val_r_squared'].append(history.history['val_r_squared'])    
     histories['val_loss'].append(history.history['val_loss'])
 
 model.save(log_dir / 'my_model.h5')
@@ -119,3 +134,9 @@ mean_mae, std_mae = calc_mean_std_per_epoch(history_df['mean_absolute_error'])
 mean_val_mae, std_val_mae = calc_mean_std_per_epoch(history_df['val_mean_absolute_error'])
 epochs = range(len(mean_mae))
 plot_two_metrics(epochs, mean_mae, std_mae, 'MAE', mean_val_mae, std_val_mae, 'Val MAE', 'MAE vs. Validation MAE')
+
+# Plot r2 and val_r2
+mean_r2, std_r2 = calc_mean_std_per_epoch(history_df['r_squared'])
+mean_val_r2, std_val_r2 = calc_mean_std_per_epoch(history_df['val_r_squared'])
+epochs = range(len(mean_r2))
+plot_two_metrics(epochs, mean_r2, std_r2, 'R2', mean_val_r2, std_val_r2, 'Val R2', 'R2 vs. Validation R2')

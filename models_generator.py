@@ -58,6 +58,14 @@ if __name__ == "__main__":
     logger.debug("Latin Hypercube exists already. Loading from disk.")
     sample_scaled = np.load(sample_file_path)
     relevant_par =  np.load(path_to_samples / "relevant_par.npy")
+
+    # Invert the log10 of these components
+    log_components = ['nH', 'Rin_M', 'kTe', 'norm', 'Tin']
+    log_index = [0, 2, 9, 10, 11, 12]
+    for i in range(sample_scaled.shape[0]):
+        for j in log_index:
+            sample_scaled[i, j] =  pow(10, sample_scaled[i, j])
+
     # Check if index_file exists
     if (index_file_path).is_file():
         last_successful_index = read_last_successful_index(index_file_path)
@@ -125,7 +133,11 @@ if __name__ == "__main__":
             params_dict = {}
             for i in range(1, m.nParameters+1):
                 if not m(i).frozen and not m(i).link:
-                    params_dict[str(i)] = m(i).values[0]
+                    # Restore the log10 value and save it in the json
+                    if m(i).name in log_components:
+                        params_dict[str(i)+" log"] = np.log10(m(i).values[0])
+                    else:
+                        params_dict[str(i)] = m(i).values[0]
             
             # Store parameters and data in a dictionary
             data = {

@@ -42,7 +42,7 @@ from modules.utils import (
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 5
+N = 10000
 # Set checkpoint file names
 sample_scaled_file_name = 'complete_sample.npy'
 
@@ -87,6 +87,9 @@ model.rfxconv.rel_refl.values = [-1.0, 0.01, -1, -1, 0, 0]
 model.rfxconv.log_xi.values = [1.0, 0.01, 1.0, 1.0, 4.0, 4.0]
 model.comptb.alpha.values = [2, 0.02, 0, 0, 3, 3]
 model.comptb.kTe.values = [5, 0.05, 5, 5, 1000, 1000]
+model.comptb.norm = [1.0, 0.01, 0.1, 0.1, 1e+20, 1e+24]
+model.diskbb.Tin = [1.0, 0.01, 0.1, 0.1, 1000.0, 1000.0]
+model.diskbb.norm = [1.0, 0.01, 0.1, 0.1, 1e+20, 1e+24]
 
 # Linking the parameters
 model.rfxconv.cosIncl.link = "COSD(5)"
@@ -107,11 +110,18 @@ for n_par in range(1, model.nParameters + 1):
 # Extract lower and upper bounds, and parameter names for scaling
 l_bounds, u_bounds, par_names = [], [], []
 
+# Compute the log10 of these components
+log_components = ['nH', 'Rin_M', 'kTe', 'norm', 'Tin']
 for n_par in relevant_par:
+    name = model(n_par).name
     # Append the values
-    l_bounds.append(model(n_par).values[3]) #bot
-    u_bounds.append(model(n_par).values[4]) #top
-    par_names.append(model(n_par).name)
+    par_names.append(name)
+    if name in log_components:
+        l_bounds.append(np.log10((model(n_par).values[3]))) #bot
+        u_bounds.append(np.log10(model(n_par).values[4])) #top
+    else:
+        l_bounds.append(model(n_par).values[3]) #bot
+        u_bounds.append(model(n_par).values[4]) #top
 
 # Define a condition function (e.g., elements greater than 5)
 condition_func = lambda x: x == 'Tin' or x == 'kTe'

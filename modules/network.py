@@ -25,18 +25,20 @@ def adjusted_r_squared(y_true, y_pred):
 def ANN_model(input_dim, output_dim):
     # Define the neural network model
     model = Sequential()
-    model.add(Dense(1024, input_dim=input_dim, activation='relu', kernel_initializer=HeNormal()))
+    model.add(Dense(512, input_dim=input_dim, activation='relu', kernel_initializer=HeNormal()))
     model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
-    model.add(Dense(256, activation='relu', kernel_initializer=HeNormal()))
-    model.add(Dense(256, activation='relu', kernel_initializer=HeNormal()))
-    model.add(Dense(output_dim, activation='linear'))
+    model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
+    model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
+    model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
+    model.add(Dense(output_dim, activation='sigmoid'))
 
     # Compile the model
     model.compile(
         optimizer=Adam(learning_rate=0.000001, clipnorm=1.0), 
         loss='mean_squared_logarithmic_error', 
         metrics=['mean_squared_error',
-                 'mean_absolute_error'] # List of metrics
+                 'mean_absolute_error',
+                 r_squared] # List of metrics
         )
     
     return model
@@ -44,13 +46,12 @@ def ANN_model(input_dim, output_dim):
 def GRU_model(input_dim, output_dim):
     # Define the neural network model
     model = Sequential()
-    model.add(GRU(units=512, return_sequences=True, input_shape=(input_dim, 1)))
-    model.add(GRU(units=512, return_sequences=True))
-    model.add(GRU(units=512, return_sequences=True))
-    model.add(GRU(units=512, return_sequences=True))
-    model.add(GRU(units=512, return_sequences=True))
-    model.add(GRU(units=512, return_sequences=False))
-    model.add(Dense(output_dim, activation='linear'))
+    model.add(GRU(units=256, return_sequences=True, input_shape=(input_dim, 1)))
+    model.add(GRU(units=256, return_sequences=True))
+    model.add(GRU(units=256, return_sequences=True))
+    model.add(GRU(units=256, return_sequences=True))
+    model.add(GRU(units=256, return_sequences=False))
+    model.add(Dense(output_dim, activation='sigmoid'))
 
     # Compile the model
     model.compile(
@@ -58,7 +59,7 @@ def GRU_model(input_dim, output_dim):
         loss='mean_squared_logarithmic_error',
         metrics=['mean_absolute_error', 
                  'mean_squared_error',
-                r_squared] # List of metrics
+                 r_squared] # List of metrics
         )
     
     return model

@@ -10,12 +10,8 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
-import tensorflow as tf
-from tensorflow.keras import backend as K
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.layers import GRU, Dense
 from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.models import load_model
 
 
 from modules.utils import process_json_files_batch, combine_hdf5_files, remove_uniform_columns
@@ -77,20 +73,29 @@ else:
     print("Removed Columns Indices:")
     print(removed_columns)
 
+    # Applica MinMaxScaler per Ogni Colonna (Parametro)
+    scalers = {}
+    Y = np.zeros_like(relevant_parameters)
+
+    for i in range(relevant_parameters.shape[1]):  # Itera attraverso le colonne (parametri)
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        Y[:, i] = scaler.fit_transform(relevant_parameters[:, i].reshape(-1, 1)).flatten()
+        scalers[i] = scaler  # Memorizza il scaler per un uso futuro
+
+    # Save each Scaler to a separate file
+    for i, scaler in scalers.items():
+        dump(scaler, log_dir / f'scaler_{i}.joblib')
+
     # Normalize flux values
     X_scaler = MinMaxScaler()
-    Y_scaler = MinMaxScaler()
     all_flux_values_normalized = X_scaler.fit_transform(all_flux_values.reshape(-1, all_flux_values.shape[-1])).reshape(all_flux_values.shape)
-    relevant_parameters_normalized = Y_scaler.fit_transform(relevant_parameters.reshape(-1, relevant_parameters.shape[-1])).reshape(relevant_parameters.shape)
     # Save the scaler
     dump(X_scaler, log_dir / 'X_scaler.joblib')
-    dump(Y_scaler, log_dir / 'Y_scaler.joblib')
-
 
     # Split the data into training, validation, and test sets
     X_train_flux, X_temp_flux, y_train, y_temp = train_test_split(
         all_flux_values_normalized, 
-        relevant_parameters_normalized, 
+        Y, 
         test_size=0.3, random_state=42
         )
     X_val_flux, X_test_flux, y_val, y_test = train_test_split(
@@ -147,7 +152,7 @@ with open(history_filename, 'w') as f:
 
 # Evaluate the model on the test set
 test_loss, test_mae, test_mse, test_r2 = model.evaluate(X_test_flux, y_test)
-print(f"Test MAE: {test_mae}, Test MSE: {test_mse}")
+print(f"Test MAE: {test_mae}, Test MSE: {test_mse}, Test R2: {test_r2}")
 print(f'Score: {model.metrics_names[0]} of {test_loss}')
 
 history_df = pd.DataFrame(existing_history)
