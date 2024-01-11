@@ -91,6 +91,15 @@ else:
     all_flux_values_normalized = X_scaler.fit_transform(all_flux_values.reshape(-1, all_flux_values.shape[-1])).reshape(all_flux_values.shape)
     # Save the scaler
     dump(X_scaler, log_dir / 'X_scaler.joblib')
+    # Find the indices of rows that contain NaN
+    indices_with_nan = np.any(np.isnan(all_flux_values_normalized), axis=1)
+    # Count the rows to be removed
+    rows_to_remove = np.sum(indices_with_nan)
+    # Remove the rows that contain NaN
+    all_flux_values_normalized = all_flux_values_normalized[~indices_with_nan]
+    Y = Y[~indices_with_nan]
+    # Print the number of rows removed
+    print(f"Number of rows removed: {rows_to_remove}")
 
     # Split the data into training, validation, and test sets
     X_train_flux, X_temp_flux, y_train, y_temp = train_test_split(

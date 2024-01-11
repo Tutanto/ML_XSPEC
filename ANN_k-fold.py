@@ -26,7 +26,7 @@ from modules.network import (
 
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.7_10k')
+path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.7-20_10k')
 path_to_logs = Path(Path.cwd() / 'logs')
 path_to_batches = Path(Path.cwd() / 'batches')
 path_to_batches.mkdir(parents=True, exist_ok=True)
@@ -74,6 +74,16 @@ X = X_scaler.fit_transform(all_flux_values.reshape(-1, all_flux_values.shape[-1]
 # Save the scaler
 dump(X_scaler, log_dir / 'X_scaler.joblib')
 
+# Find the indices of rows that contain NaN
+indices_with_nan = np.any(np.isnan(X), axis=1)
+# Count the rows to be removed
+rows_to_remove = np.sum(indices_with_nan)
+# Remove the rows that contain NaN
+X = X[~indices_with_nan]
+Y = Y[~indices_with_nan]
+# Print the number of rows removed
+print(f"Number of rows removed: {rows_to_remove}")
+
 # Parameters for k-fold validation
 k = 5  # Number of folds
 seed = 42  # Random seed for reproducibility
@@ -101,7 +111,7 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val), 
-        epochs=400, batch_size=100,
+        epochs=150, batch_size=100,
         callbacks=[tensorboard_callback],
         verbose=0
     )

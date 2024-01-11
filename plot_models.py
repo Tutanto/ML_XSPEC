@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     # Set up paths for logs and models
     cwd = Path.cwd()
-    path_to_models = Path(cwd / "models")
+    path_to_models = Path(cwd / 'all_models' / 'models_0.7-20_10k')
 
     # Get the count of files in models directory to set an upper limit for n_plots_per_row
     num_files = len(list(path_to_models.glob('*')))
