@@ -42,7 +42,7 @@ from modules.utils import (
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 10000
+N = 5
 # Set checkpoint file names
 sample_scaled_file_name = 'complete_sample.npy'
 
@@ -87,9 +87,9 @@ model.rfxconv.rel_refl.values = [-1.0, 0.01, -1, -1, 0, 0]
 model.rfxconv.log_xi.values = [1.0, 0.01, 1.0, 1.0, 4.0, 4.0]
 model.comptb.alpha.values = [2, 0.02, 0, 0, 3, 3]
 model.comptb.kTe.values = [5, 0.05, 5, 5, 1000, 1000]
-model.comptb.norm = [1.0, 0.01, 0.1, 0.01, 1e+3, 1e+24]
+model.comptb.norm = [1.0, 0.01, 0.1, 0.1, 1.e3, 1e+24]
 model.diskbb.Tin = [1.0, 0.01, 0.1, 0.1, 1000.0, 1000.0]
-model.diskbb.norm = [1.0, 0.01, 0.1, 0.01, 1e+3, 1e+24]
+model.diskbb.norm = [1.0, 0.01, 0.1, 0.1, 1.e3, 1e+24]
 
 # Linking the parameters
 model.rfxconv.cosIncl.link = "COSD(5)"
