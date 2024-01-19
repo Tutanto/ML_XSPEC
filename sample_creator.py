@@ -42,7 +42,7 @@ from modules.utils import (
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 10000
+N = 1000
 # Set checkpoint file names
 sample_scaled_file_name = 'complete_sample.npy'
 
@@ -86,10 +86,11 @@ model.rdblur.Betor10.values = [-2, 0.02, -10.0,-10.0, 0,0]
 model.rfxconv.rel_refl.values = [-1.0, 0.01, -1, -1, 0, 0]
 model.rfxconv.log_xi.values = [1.0, 0.01, 1.0, 1.0, 4.0, 4.0]
 model.comptb.alpha.values = [2, 0.02, 0, 0, 3, 3]
-model.comptb.kTe.values = [5, 0.05, 5, 5, 1000, 1000]
-model.comptb.norm = [1.0, 0.01, 0.1, 0.1, 1.e3, 1e+24]
-model.diskbb.Tin = [1.0, 0.01, 0.1, 0.1, 1000.0, 1000.0]
-model.diskbb.norm = [1.0, 0.01, 0.1, 0.1, 1.e3, 1e+24]
+model.comptb.kTe.values = [5, 0.05, 0.2, 1, 1000, 1000]
+model.comptb.kTs.values = [1.0, 0.01, 0.1, 0.15, 2, 10.0]
+model.comptb.norm.values = [1.0, 0.01, 0.1, 0.1, 1.e3, 1e+24]
+model.diskbb.Tin.values = [1.0, 0.01, 0.1, 0.1, 2, 1000.0]
+model.diskbb.norm.values = [1.0, 0.01, 0.1, 0.1, 1.e3, 1e+24]
 
 # Linking the parameters
 model.rfxconv.cosIncl.link = "COSD(5)"
@@ -111,7 +112,7 @@ for n_par in range(1, model.nParameters + 1):
 l_bounds, u_bounds, par_names = [], [], []
 
 # Compute the log10 of these components
-log_components = ['nH', 'Rin_M', 'kTe', 'norm', 'Tin']
+log_components = ['nH', 'Rin_M', 'kTs', 'kTe', 'norm', 'Tin']
 for n_par in relevant_par:
     name = model(n_par).name
     # Append the values
@@ -124,7 +125,7 @@ for n_par in relevant_par:
         u_bounds.append(model(n_par).values[4]) #top
 
 # Define a condition function (e.g., elements greater than 5)
-condition_func = lambda x: x == 'Tin' or x == 'kTe'
+condition_func = lambda x: x == 'kTs' or x == 'kTe' or x == 'Tin'
 
 # Get the indices where the condition is satisfied
 result_indices = indices_satisfying_condition(par_names, condition_func)

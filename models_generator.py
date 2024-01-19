@@ -60,7 +60,7 @@ if __name__ == "__main__":
     relevant_par =  np.load(path_to_samples / "relevant_par.npy")
 
     # Invert the log10 of these components
-    log_components = ['nH', 'Rin_M', 'kTe', 'norm', 'Tin']
+    log_components = ['nH', 'Rin_M', 'kTs', 'kTe', 'norm', 'Tin']
     log_index = [0, 2, 9, 10, 11, 12]
     for i in range(sample_scaled.shape[0]):
         for j in log_index:

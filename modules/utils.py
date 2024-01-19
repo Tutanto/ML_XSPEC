@@ -29,14 +29,22 @@ def read_last_successful_index(file_path):
     except FileNotFoundError:
         return 0  # If the file does not exist, start from the beginning
 
+def adjust_values(kTe, kTs, Tin):
+    val = 0.01
+    if kTs >= kTe:
+        kTs = kTe - val
+    if Tin >= kTs:
+        Tin = kTs - val
+    return kTe, kTs, Tin
+
 def generate_latin_hypercube(d, linked, n=10, seed=None):
     """
     Generate a Latin Hypercube sample for model parameters.
 
     Parameters:
     - d (int): The dimensionality of the Latin Hypercube.
-    - linked (list): A list representing linked parameters where the second parameter
-                     should always be less than the first one.
+    - linked (list): A list representing linked parameters where the 3rd parameter
+                     should always be less than the 1st one, and the 1st < 2nd.
     - n (int): The number of samples to generate. Default is 10.
     - seed (int): Seed for reproducibility. Default is None.
 
@@ -47,8 +55,8 @@ def generate_latin_hypercube(d, linked, n=10, seed=None):
     if not isinstance(d, int) or d <= 0:
         raise ValueError("The dimensionality 'd' must be a positive integer.")
     
-    if not isinstance(linked, list) or len(linked) != 2:
-        raise ValueError("The 'linked' parameter must be a list of two indices.")
+    if not isinstance(linked, list) or len(linked) != 3:
+        raise ValueError("The 'linked' parameter must be a list of 3 indices.")
     
     if not isinstance(n, int) or n <= 0:
         raise ValueError("The number of samples 'n' must be a positive integer.")
@@ -63,7 +71,17 @@ def generate_latin_hypercube(d, linked, n=10, seed=None):
     parameters = sampler.random(n=n)
 
     # Ensure the second parameter is always less than the first one
-    parameters[:, linked[1]] = parameters[:, linked[0]] * parameters[:, linked[1]]
+    # If kTs is not less than kTe, set kTs to a value just below kTe
+    # Indexes of kTe, kTs, and Tin in each sub-array
+    idx_kTe = linked[1]  # Example index for kTe
+    idx_kTs = linked[0]  # Example index for kTs
+    idx_Tin = linked[2]  # Example index for Tin
+
+    # Apply adjustments to each sub-array
+    for sub_array in parameters:
+        kTe, kTs, Tin = sub_array[idx_kTe], sub_array[idx_kTs], sub_array[idx_Tin]
+        kTe, kTs, Tin = adjust_values(kTe, kTs, Tin)
+        sub_array[idx_kTe], sub_array[idx_kTs], sub_array[idx_Tin] = kTe, kTs, Tin
 
     return parameters
 # Example usage:
