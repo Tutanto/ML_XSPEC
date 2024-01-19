@@ -9,7 +9,7 @@ from modules.utils import (
     process_json_files_batch,
     combine_hdf5_files)
 
-path_to_models = Path(Path.cwd() / 'models')
+path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.6-30_10k')
 path_to_batches = Path(Path.cwd() / 'batches')
 path_to_batches.mkdir(parents=True, exist_ok=True)
 

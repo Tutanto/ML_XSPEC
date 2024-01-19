@@ -19,7 +19,7 @@ from modules.network import r_squared, GRU_model
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-path_to_models = Path(Path.cwd() / 'models_0.1-100')
+path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.6-30_10k')
 path_to_logs = Path(Path.cwd() / 'logs')
 path_to_batches = Path(Path.cwd() / 'batches')
 path_to_batches.mkdir(parents=True, exist_ok=True)

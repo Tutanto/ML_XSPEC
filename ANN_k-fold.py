@@ -1,5 +1,6 @@
 import os
 import h5py
+import json
 import datetime
 import numpy as np
 import pandas as pd
@@ -24,9 +25,9 @@ from modules.network import (
     ANN_model
 )
 
-os.environ['CUDA_VISIBLE_DEVICES'] = ''
+#os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.7-20_10k')
+path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.6-3plot0_10k')
 path_to_logs = Path(Path.cwd() / 'logs')
 path_to_batches = Path(Path.cwd() / 'batches')
 path_to_batches.mkdir(parents=True, exist_ok=True)
@@ -131,6 +132,12 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     histories['val_loss'].append(history.history['val_loss'])
 
 model.save(log_dir / 'my_model.h5')
+# Load existing history if it exists
+history_filename = log_dir / 'training_history.json'
+# Save merged history
+with open(history_filename, 'w') as f:
+    json.dump(histories, f)
+
 history_df = pd.DataFrame(histories)
 
 # Plot loss and val_loss

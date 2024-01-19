@@ -102,6 +102,7 @@ if __name__ == "__main__":
             m.comptb.log_A.frozen = True
 
             m.rdblur.Rout_M.values = 1000
+            m.comptb.delta.values = 0
             m.comptb.log_A.values = 8
 
             m.rfxconv.cosIncl.link = "COSD(5)"
