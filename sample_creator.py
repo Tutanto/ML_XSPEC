@@ -113,11 +113,12 @@ l_bounds, u_bounds, par_names = [], [], []
 
 # Compute the log10 of these components
 log_components = ['nH', 'Rin_M', 'kTs', 'kTe', 'norm', 'Tin']
+log_index = [0, 2, 9, 12]
 for n_par in relevant_par:
     name = model(n_par).name
     # Append the values
     par_names.append(name)
-    if name in log_components:
+    if n_par in log_index:
         l_bounds.append(np.log10((model(n_par).values[3]))) #bot
         u_bounds.append(np.log10(model(n_par).values[4])) #top
     else:

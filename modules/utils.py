@@ -31,11 +31,11 @@ def read_last_successful_index(file_path):
 
 def adjust_values(kTe, kTs, Tin):
     val = 0.01
-    if kTs >= kTe:
-        if (kTe - val) > 0:
-            kTs = kTe - val
+    if kTs >= pow(10, kTe):
+        if (pow(10, kTe) - val) > 0:
+            kTs = pow(10, kTe) - val
         else:
-            kTs = kTe
+            kTs = pow(10, kTe)
     if Tin >= kTs:
         if (kTs - val) > 0:
             Tin = kTs - val
