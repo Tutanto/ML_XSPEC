@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     # Invert the log10 of these components
     log_components = ['nH', 'Rin_M', 'kTs', 'kTe', 'norm', 'Tin']
-    log_index = [0, 2, 9, 10, 11, 12]
+    log_index = [0, 2, 7, 9, 10, 11, 12]
     for i in range(sample_scaled.shape[0]):
         for j in log_index:
             sample_scaled[i, j] =  pow(10, sample_scaled[i, j])
