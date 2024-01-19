@@ -60,7 +60,7 @@ if __name__ == "__main__":
     relevant_par =  np.load(path_to_samples / "relevant_par.npy")
 
     # Invert the log10 of these components
-    log_index = [0, 2, 9, 12]
+    log_index = [0, 2, 12]
     for i in range(sample_scaled.shape[0]):
         for j in log_index:
             sample_scaled[i, j] =  pow(10, sample_scaled[i, j])
@@ -86,7 +86,7 @@ if __name__ == "__main__":
             # Clear existing XSPEC models and data
             AllModels.clear()
             AllData.clear()
-            AllData.dummyrsp(0.7 ,100.)
+            AllData.dummyrsp(0.5, 20.)
 
             # Initialize the model with the scaled parameters
             m = Model(model_name, setPars={int(relevant_par[j]):params[j] for j in range(len(relevant_par))})
