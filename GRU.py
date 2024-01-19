@@ -1,4 +1,3 @@
-import os
 import h5py
 import json
 import datetime
@@ -142,7 +141,7 @@ model.save(model_file_path)
 
 # Load existing history if it exists
 history_filename = log_dir / 'training_history.json'
-if os.path.exists(history_filename):
+if history_filename.exists():
     with open(history_filename, 'r') as f:
         existing_history = json.load(f)
 else:
