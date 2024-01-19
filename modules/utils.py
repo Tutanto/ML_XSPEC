@@ -32,9 +32,15 @@ def read_last_successful_index(file_path):
 def adjust_values(kTe, kTs, Tin):
     val = 0.01
     if kTs >= kTe:
-        kTs = kTe - val
+        if (kTe - val) > 0:
+            kTs = kTe - val
+        else:
+            kTs = kTe
     if Tin >= kTs:
-        Tin = kTs - val
+        if (kTs - val) > 0:
+            Tin = kTs - val
+        else:
+            Tin = kTs
     return kTe, kTs, Tin
 
 def generate_latin_hypercube(d, linked, n=10, seed=None):
