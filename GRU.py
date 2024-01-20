@@ -2,7 +2,6 @@ import h5py
 import json
 import datetime
 import numpy as np
-import pandas as pd
 from joblib import dump
 from pathlib import Path
 
@@ -162,10 +161,3 @@ with open(history_filename, 'w') as f:
 test_loss, test_mae, test_mse, test_r2 = model.evaluate(X_test_flux, y_test)
 print(f"Test MAE: {test_mae}, Test MSE: {test_mse}, Test R2: {test_r2}")
 print(f'Score: {model.metrics_names[0]} of {test_loss}')
-
-history_df = pd.DataFrame(existing_history)
-history_df.loc[:, ['loss', 'val_loss']].plot()
-history_df.loc[:, ['mean_absolute_error', 'val_mean_absolute_error']].plot()
-history_df.loc[:, ['mean_squared_error', 'val_mean_squared_error']].plot()
-history_df.loc[:, ['r_squared', 'val_r_squared']].plot()
-print("Minimum validation loss: {}".format(history_df['val_loss'].min()))

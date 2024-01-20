@@ -2,11 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, GRU
 from tensorflow.keras import backend as K
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.initializers import HeNormal
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import (
+    GRU, 
+    Dense, 
+    Dropout, 
+    Activation, 
+    BatchNormalization
+)
+
 
 def r_squared(y_true, y_pred):
     SS_res =  K.sum(K.square(y_true - y_pred)) 
@@ -22,40 +29,104 @@ def adjusted_r_squared(y_true, y_pred):
 
     return 1 - (1 - r2) * ((n - 1) / (n - p - 1))
 
-def ANN_model(input_dim, output_dim):
+
+def ANN_model(input_dim, output_dim, neurons=128, hidden=4, dropout=.3, learning_rate=1.e-4):
+    """
+    Constructs an Artificial Neural Network (ANN) model using Keras.
+
+    The model consists of one input layer, multiple hidden layers, and one output layer.
+    Each hidden layer is followed by ReLU activation, Dropout, and BatchNormalization.
+    The model uses the Adam optimizer and is compiled with specific loss and metrics.
+
+    Parameters:
+    - input_dim (int): The number of input features. This is the size of the first dimension of the input data.
+    - output_dim (int): The number of neurons in the output layer. Determines the size of the output dimension.
+    - neurons (int, optional): The number of neurons in each hidden layer. Defaults to 128.
+    - hidden (int, optional): The number of hidden layers in the network. Defaults to 4.
+    - dropout (float, optional): The dropout rate for regularization, applied to each hidden layer. Defaults to 0.3.
+    - learning_rate (float, optional): The learning rate for the Adam optimizer. Defaults to 1.e-4.
+
+    Returns:
+    - model: A Keras Sequential model, compiled and ready for training.
+
+    Example:
+    ```
+    model = ANN_model(input_dim=100, output_dim=1)
+    ```
+
+    This function creates an ANN model with 100 input features, 1 output neuron, 4 hidden layers (each with 128 neurons),
+    a dropout rate of 0.3, and a learning rate of 0.0001 for the optimizer.
+    """
     # Define the neural network model
     model = Sequential()
-    model.add(Dense(512, input_dim=input_dim, activation='relu', kernel_initializer=HeNormal()))
-    model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
-    model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
-    model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
-    model.add(Dense(512, activation='relu', kernel_initializer=HeNormal()))
+    
+    # Input layer with BatchNormalization
+    model.add(Dense(neurons, input_dim=input_dim, kernel_initializer=HeNormal()))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    
+    # Hidden layers with Dropout and BatchNormalization
+    for _ in range(hidden):
+        model.add(Dense(neurons, kernel_initializer=HeNormal()))
+        model.add(Activation('relu'))
+        model.add(Dropout(dropout)) # Apply Dropout, adjust the dropout rate as needed
+        model.add(BatchNormalization()) # Apply BatchNormalization
+
+    # Output layer
     model.add(Dense(output_dim, activation='sigmoid'))
 
     # Compile the model
     model.compile(
-        optimizer=Adam(learning_rate=0.000001, clipnorm=1.0), 
+        optimizer=Adam(learning_rate=learning_rate, clipnorm=1.0), 
         loss='mean_squared_logarithmic_error', 
-        metrics=['mean_squared_error',
-                 'mean_absolute_error',
-                 r_squared] # List of metrics
-        )
+        metrics=['mean_squared_error', 'mean_absolute_error', r_squared]
+    )
     
     return model
 
-def GRU_model(input_dim, output_dim):
+
+def GRU_model(input_dim, output_dim, neurons=128, hidden=4, dropout=.3, learning_rate=1.e-4):
+    """
+    Constructs a Gated Recurrent Unit (GRU) based neural network model using Keras.
+
+    This model is designed for sequence prediction tasks and includes one input GRU layer,
+    multiple hidden GRU layers, and one output Dense layer. Each GRU layer incorporates
+    dropout and recurrent dropout for regularization.
+
+    Parameters:
+    - input_dim (int): The number of time steps (sequence length) in each input sample.
+    - output_dim (int): The number of neurons in the output layer. Determines the size of the model's output.
+    - neurons (int, optional): The number of units (neurons) in each GRU layer. Defaults to 128.
+    - hidden (int, optional): The number of hidden GRU layers in the network. Defaults to 4.
+    - dropout (float, optional): The dropout rate for inputs and recurrent connections in the GRU layers. Defaults to 0.3.
+    - learning_rate (float, optional): The learning rate for the Adam optimizer. Defaults to 1.e-4.
+
+    Returns:
+    - model: A Keras Sequential model, compiled and ready for training.
+
+    Example:
+    ```
+    model = GRU_model(input_dim=10, output_dim=1)
+    ```
+
+    This function creates a GRU-based model with an input sequence length of 10, 1 output neuron,
+    4 hidden layers (each with 128 neurons), a dropout rate of 0.3 for both inputs and recurrent connections,
+    and a learning rate of 0.0001 for the optimizer.
+    """
     # Define the neural network model
     model = Sequential()
-    model.add(GRU(units=256, return_sequences=True, input_shape=(input_dim, 1)))
-    model.add(GRU(units=256, return_sequences=True))
-    model.add(GRU(units=256, return_sequences=True))
-    model.add(GRU(units=256, return_sequences=True))
-    model.add(GRU(units=256, return_sequences=False))
+    # Input layer
+    model.add(GRU(units=neurons, return_sequences=True, input_shape=(input_dim, 1), dropout=dropout, recurrent_dropout=dropout))
+    # Hidden layers with Dropout
+    for _ in range (hidden-1):
+        model.add(GRU(units=neurons, return_sequences=True, dropout=dropout, recurrent_dropout=dropout))
+    model.add(GRU(units=neurons, return_sequences=False, dropout=dropout, recurrent_dropout=dropout))
+    # Output layer
     model.add(Dense(output_dim, activation='sigmoid'))
 
     # Compile the model
     model.compile(
-        optimizer=Adam(learning_rate=0.000001, clipnorm=1.0), 
+        optimizer=Adam(learning_rate=learning_rate, clipnorm=1.0), 
         loss='mean_squared_logarithmic_error',
         metrics=['mean_absolute_error', 
                  'mean_squared_error',

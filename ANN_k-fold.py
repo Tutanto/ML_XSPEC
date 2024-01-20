@@ -1,9 +1,7 @@
-import os
 import h5py
 import json
 import datetime
 import numpy as np
-import pandas as pd
 from joblib import dump
 from pathlib import Path
 
@@ -19,15 +17,11 @@ from modules.utils import (
     remove_uniform_columns
 )
 
-from modules.network import (
-    calc_mean_std_per_epoch,
-    plot_two_metrics,
-    ANN_model
-)
+from modules.network import ANN_model
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.6-3plot0_10k')
+path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.5-20_10k')
 path_to_logs = Path(Path.cwd() / 'logs')
 path_to_batches = Path(Path.cwd() / 'batches')
 path_to_batches.mkdir(parents=True, exist_ok=True)
@@ -112,7 +106,7 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val), 
-        epochs=150, batch_size=100,
+        epochs=500, batch_size=50,
         callbacks=[tensorboard_callback],
         verbose=0
     )
@@ -137,23 +131,3 @@ history_filename = log_dir / 'training_history.json'
 # Save merged history
 with open(history_filename, 'w') as f:
     json.dump(histories, f)
-
-history_df = pd.DataFrame(histories)
-
-# Plot loss and val_loss
-mean_loss, std_loss = calc_mean_std_per_epoch(history_df['loss'])
-mean_val_loss, std_val_loss = calc_mean_std_per_epoch(history_df['val_loss'])
-epochs = range(len(mean_loss))
-plot_two_metrics(epochs, mean_loss, std_loss, 'Loss', mean_val_loss, std_val_loss, 'Val Loss', 'Loss vs. Validation Loss')
-
-# Plot mean_absolute_error and val_mean_absolute_error
-mean_mae, std_mae = calc_mean_std_per_epoch(history_df['mean_absolute_error'])
-mean_val_mae, std_val_mae = calc_mean_std_per_epoch(history_df['val_mean_absolute_error'])
-epochs = range(len(mean_mae))
-plot_two_metrics(epochs, mean_mae, std_mae, 'MAE', mean_val_mae, std_val_mae, 'Val MAE', 'MAE vs. Validation MAE')
-
-# Plot r2 and val_r2
-mean_r2, std_r2 = calc_mean_std_per_epoch(history_df['r_squared'])
-mean_val_r2, std_val_r2 = calc_mean_std_per_epoch(history_df['val_r_squared'])
-epochs = range(len(mean_r2))
-plot_two_metrics(epochs, mean_r2, std_r2, 'R2', mean_val_r2, std_val_r2, 'Val R2', 'R2 vs. Validation R2')
