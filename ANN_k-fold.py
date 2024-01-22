@@ -19,7 +19,8 @@ from modules.utils import (
 
 from modules.network import ANN_model
 
-#os.environ['CUDA_VISIBLE_DEVICES'] = ''
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 path_to_models = Path(Path.cwd() / 'all_models' / 'models_0.5-20_10k')
 path_to_logs = Path(Path.cwd() / 'logs')
@@ -100,13 +101,13 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 
-    model = ANN_model(X_train.shape[1], y_train.shape[1])
+    model = ANN_model(X_train.shape[1], y_train.shape[1], neurons=512, hidden=7, dropout=0.3)
 
     # Train the model
     history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val), 
-        epochs=500, batch_size=50,
+        epochs=150, batch_size=25,
         callbacks=[tensorboard_callback],
         verbose=0
     )
