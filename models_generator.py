@@ -60,7 +60,7 @@ if __name__ == "__main__":
     relevant_par =  np.load(path_to_samples / "relevant_par.npy")
 
     # Invert the log10 of these components
-    log_index = [1, 3, 15, 19]
+    log_index = [0, 2, 9, 12]
     for i in range(sample_scaled.shape[0]):
         for j in log_index:
             sample_scaled[i, j] =  pow(10, sample_scaled[i, j])
@@ -134,7 +134,7 @@ if __name__ == "__main__":
             for i in range(1, m.nParameters+1):
                 if not m(i).frozen and not m(i).link:
                     # Restore the log10 value and save it in the json
-                    if i in log_index:
+                    if i in [1, 3, 15, 19]:
                         params_dict[str(i)+" log"] = np.log10(m(i).values[0])
                     else:
                         params_dict[str(i)] = m(i).values[0]
