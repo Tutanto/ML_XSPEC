@@ -30,5 +30,7 @@ for split_start in range(start_range, end_range, 250):
             print(f"Error: last_successful_index ({last_successful_index}) > split_stop ({split_stop}). Stopping the script.")
             break
     # Run the models_generator.py script regardless of the checkpoint file's existence
-    command = f"nohup python models_generator.py split_{split_start}-{split_stop}.npy &"
+    command = f"nohup python models_generator.py split_{split_start}-{split_stop}.npy > generator_{split_start}-{split_stop}.txt &"
     os.system(command)
+
+os.system('mv generator_* logs/')

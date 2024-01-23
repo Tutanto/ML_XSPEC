@@ -42,7 +42,7 @@ from modules.utils import (
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 1000
+N = 10000
 # Set checkpoint file names
 sample_scaled_file_name = 'complete_sample.npy'
 
@@ -86,7 +86,7 @@ model.rdblur.Betor10.values = [-2, 0.02, -10.0,-10.0, 0,0]
 model.rfxconv.rel_refl.values = [-1.0, 0.01, -1, -1, 0, 0]
 model.rfxconv.log_xi.values = [1.0, 0.01, 1.0, 1.0, 4.0, 4.0]
 model.comptb.alpha.values = [2, 0.02, 0, 0, 3, 3]
-model.comptb.kTe.values = [5, 0.05, 0.2, 1, 1000, 1000]
+model.comptb.kTe.values = [5, 0.05, 0.2, 2, 1000, 1000]
 model.comptb.kTs.values = [1.0, 0.01, 0.1, 0.15, 2, 10.0]
 model.comptb.norm.values = [1.0, 0.01, 0.1, 0.1, 1.e0, 1e+24]
 model.diskbb.Tin.values = [1.0, 0.01, 0.1, 0.1, 2, 1000.0]
@@ -107,7 +107,6 @@ for n_par in range(1, model.nParameters + 1):
     if not model(n_par).frozen and not model(n_par).link:
         relevant_par.append(n_par)
 
-
 # Extract lower and upper bounds, and parameter names for scaling
 l_bounds, u_bounds, par_names = [], [], []
 
@@ -118,7 +117,7 @@ for n_par in relevant_par:
     # Append the values
     par_names.append(name)
     if n_par in log_index:
-        l_bounds.append(np.log10((model(n_par).values[3]))) #bot
+        l_bounds.append(np.log10(model(n_par).values[3])) #bot
         u_bounds.append(np.log10(model(n_par).values[4])) #top
     else:
         l_bounds.append(model(n_par).values[3]) #bot
@@ -137,6 +136,10 @@ logger.debug(f"Components in the model: {par_names}")
 
 # Scale the sample to fit parameter bounds
 sample_scaled = qmc.scale(sample, l_bounds, u_bounds)
+# Apply the condition kTe < 6 then alpha < 1.5
+for i in range(sample_scaled.shape[0]):
+    if pow(10, sample[i][9]) < 6 and sample[i][8] > 1.5:
+        sample[i][8] = np.random.uniform(0, 1.5)
 logger.debug("Scaled samples to parameter bounds")
 
 np.save(sample_scaled_file_path, sample_scaled)

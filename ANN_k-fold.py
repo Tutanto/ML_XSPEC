@@ -101,13 +101,13 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 
-    model = ANN_model(X_train.shape[1], y_train.shape[1], neurons=512, hidden=6, dropout=0.3)
+    model = ANN_model(X_train.shape[1], y_train.shape[1], neurons=256, hidden=6, dropout=0.3)
 
     # Train the model
     history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val), 
-        epochs=500, batch_size=50,
+        epochs=200, batch_size=50,
         callbacks=[tensorboard_callback],
         verbose=0
     )

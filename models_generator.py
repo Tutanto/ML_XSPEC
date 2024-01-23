@@ -22,8 +22,6 @@ if __name__ == "__main__":
     
     sample_file_name = sys.argv[1]
 
-    # Set the size of the Dataset
-    N = 10000
     # Set smoothing
     smoothing = False
     # Set checkpoint file names
@@ -88,8 +86,8 @@ if __name__ == "__main__":
             AllData.clear()
             AllData.dummyrsp(0.5, 20.)
 
-            # Initialize the model with the scaled parameters
-            m = Model(model_name, setPars={int(relevant_par[j]):params[j] for j in range(len(relevant_par))})
+            # Initialize the model
+            m = Model(model_name)
 
             # Changing default frozen parameters to unfrozen
             m.rdblur.Betor10.frozen = False
@@ -110,8 +108,8 @@ if __name__ == "__main__":
             for i in range(start, start + len(m.comptb_6.parameterNames)):
                 m(i).link = m(i-9) # 9 is the separation between comptb and comptb_6
 
-            # Add the model to the spectral analysis system
-            AllModels.setPars(m)
+            # Add the model to the spectral analysis system and set parameters
+            AllModels.setPars(m, {int(relevant_par[j]):params[j] for j in range(len(relevant_par))})
 
             # Set up the energy range of interest for plotting
             Plot.device = "/null"
