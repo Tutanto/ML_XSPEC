@@ -112,7 +112,7 @@ for n_par in range(1, model.nParameters + 1):
 l_bounds, u_bounds, par_names = [], [], []
 
 # Compute the log10 of these components
-log_index = [1, 3, 19]
+log_index = [1, 3, 15, 19]
 for n_par in relevant_par:
     name = model(n_par).name
     # Append the values
