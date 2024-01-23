@@ -140,6 +140,9 @@ sample_scaled = qmc.scale(sample, l_bounds, u_bounds)
 for i in range(sample_scaled.shape[0]):
     if pow(10, sample[i][9]) < 6 and sample[i][8] > 1.5:
         sample[i][8] = np.random.uniform(0.1, 1.5)
+    elif pow(10, sample[i][9]) > 6 and sample[i][8] < 1.5:
+        sample[i][8] = np.random.uniform(1.5, 3)
+    
 logger.debug("Scaled samples to parameter bounds")
 
 np.save(sample_scaled_file_path, sample_scaled)
