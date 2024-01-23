@@ -85,7 +85,7 @@ model.TBabs.nH.values = [1.0, 0.01, 0.01, 0.01, 10.0, 10.0]
 model.rdblur.Betor10.values = [-2, 0.02, -10.0,-10.0, 0,0]
 model.rfxconv.rel_refl.values = [-1.0, 0.01, -1, -1, 0, 0]
 model.rfxconv.log_xi.values = [1.0, 0.01, 1.0, 1.0, 4.0, 4.0]
-model.comptb.alpha.values = [2, 0.02, 0, 0, 3, 3]
+model.comptb.alpha.values = [2, 0.02, 0, 0.1, 3, 3]
 model.comptb.kTe.values = [5, 0.05, 0.2, 2, 1000, 1000]
 model.comptb.kTs.values = [1.0, 0.01, 0.1, 0.15, 2, 10.0]
 model.comptb.norm.values = [1.0, 0.01, 0.1, 0.1, 1.e0, 1e+24]
@@ -139,7 +139,7 @@ sample_scaled = qmc.scale(sample, l_bounds, u_bounds)
 # Apply the condition kTe < 6 then alpha < 1.5
 for i in range(sample_scaled.shape[0]):
     if pow(10, sample[i][9]) < 6 and sample[i][8] > 1.5:
-        sample[i][8] = np.random.uniform(0, 1.5)
+        sample[i][8] = np.random.uniform(0.1, 1.5)
 logger.debug("Scaled samples to parameter bounds")
 
 np.save(sample_scaled_file_path, sample_scaled)

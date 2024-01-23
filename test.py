@@ -13,7 +13,7 @@ from modules.utils import (
     save_last_successful_index,
     )
 
-sample_file_name = "split_300-399.npy"
+sample_file_name = "split_500-749.npy"
 cwd = Path.cwd()
 path_to_models = Path(cwd / "models")
 path_to_samples = Path(cwd / "samples")
@@ -60,7 +60,7 @@ for i in range(start, start + len(m.comptb_6.parameterNames)):
 #m.setPars({int(relevant_par[j]):sample_scaled[29][j] for j in range(len(relevant_par))})
 ## Add the model to the spectral analysis system and set parameters
 #AllModels.setPars(m, {int(relevant_par[j]):sample_scaled[29][j] for j in range(len(relevant_par))})
-AllModels.setPars(m, {int(relevant_par[j]):sample_scaled[29][j] for j in range(9)})
+AllModels.setPars(m, {int(relevant_par[j]):sample_scaled[182][j] for j in range(9)})
 
 # Set up the energy range of interest for plotting
 '''Plot.device = "/xs"
