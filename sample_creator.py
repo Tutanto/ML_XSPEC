@@ -83,6 +83,7 @@ model.comptb.log_A.frozen = True
 # Fixing values, upper and lower limits
 model.TBabs.nH.values = [1.0, 0.01, 0.01, 0.01, 10.0, 10.0]
 model.rdblur.Betor10.values = [-2, 0.02, -10.0,-10.0, 0,0]
+model.rdblur.Rin_M.values = [10.0, -0.1, 6.0, 6.0, 150.0, 10000.0]
 model.rfxconv.rel_refl.values = [-1.0, 0.01, -1, -1, 0, 0]
 model.rfxconv.log_xi.values = [1.0, 0.01, 1.0, 1.0, 4.0, 4.0]
 model.comptb.alpha.values = [2, 0.02, 0, 0.1, 3, 3]
@@ -111,7 +112,7 @@ for n_par in range(1, model.nParameters + 1):
 l_bounds, u_bounds, par_names = [], [], []
 
 # Compute the log10 of these components
-log_index = [1, 3, 15, 19]
+log_index = [1, 15, 19]
 for n_par in relevant_par:
     name = model(n_par).name
     # Append the values
@@ -138,10 +139,10 @@ logger.debug(f"Components in the model: {par_names}")
 sample_scaled = qmc.scale(sample, l_bounds, u_bounds)
 # Apply the condition kTe < 6 then alpha < 1.5
 for i in range(sample_scaled.shape[0]):
-    if pow(10, sample[i][9]) < 6 and sample[i][8] > 1.5:
-        sample[i][8] = np.random.uniform(0.1, 1.5)
-    elif pow(10, sample[i][9]) > 6 and sample[i][8] < 1.5:
-        sample[i][8] = np.random.uniform(1.5, 3)
+    if pow(10, sample_scaled[i][9]) < 6 and sample_scaled[i][8] > 1.5:
+        sample_scaled[i][8] = np.random.uniform(0.1, 1.5)
+    elif pow(10, sample_scaled[i][9]) > 6 and sample_scaled[i][8] < 1.5:
+        sample_scaled[i][8] = np.random.uniform(1.5, 3)
     
 logger.debug("Scaled samples to parameter bounds")
 

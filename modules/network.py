@@ -69,7 +69,8 @@ def ANN_model(input_dim, output_dim, neurons=128, hidden=4, dropout=.3, learning
     for _ in range(hidden):
         model.add(Dense(neurons, kernel_initializer=HeNormal()))
         model.add(Activation('relu'))
-        model.add(Dropout(dropout)) # Apply Dropout, adjust the dropout rate as needed
+        if dropout:
+            model.add(Dropout(dropout)) # Apply Dropout, adjust the dropout rate as needed
         model.add(BatchNormalization()) # Apply BatchNormalization
 
     # Output layer
@@ -85,20 +86,18 @@ def ANN_model(input_dim, output_dim, neurons=128, hidden=4, dropout=.3, learning
     return model
 
 
-def GRU_model(input_dim, output_dim, neurons=128, hidden=4, dropout=.3, learning_rate=1.e-4):
+def GRU_model(input_dim, output_dim, neurons=128, hidden=2, learning_rate=1.e-4):
     """
     Constructs a Gated Recurrent Unit (GRU) based neural network model using Keras.
 
     This model is designed for sequence prediction tasks and includes one input GRU layer,
-    multiple hidden GRU layers, and one output Dense layer. Each GRU layer incorporates
-    dropout and recurrent dropout for regularization.
+    multiple hidden GRU layers, and one output Dense layer.
 
     Parameters:
     - input_dim (int): The number of time steps (sequence length) in each input sample.
     - output_dim (int): The number of neurons in the output layer. Determines the size of the model's output.
     - neurons (int, optional): The number of units (neurons) in each GRU layer. Defaults to 128.
     - hidden (int, optional): The number of hidden GRU layers in the network. Defaults to 4.
-    - dropout (float, optional): The dropout rate for inputs and recurrent connections in the GRU layers. Defaults to 0.3.
     - learning_rate (float, optional): The learning rate for the Adam optimizer. Defaults to 1.e-4.
 
     Returns:
@@ -116,11 +115,11 @@ def GRU_model(input_dim, output_dim, neurons=128, hidden=4, dropout=.3, learning
     # Define the neural network model
     model = Sequential()
     # Input layer
-    model.add(GRU(units=neurons, return_sequences=True, input_shape=(input_dim, 1), dropout=dropout, recurrent_dropout=dropout))
+    model.add(GRU(units=neurons, return_sequences=True, input_shape=(input_dim, 1)))
     # Hidden layers with Dropout
-    for _ in range (hidden-1):
-        model.add(GRU(units=neurons, return_sequences=True, dropout=dropout, recurrent_dropout=dropout))
-    model.add(GRU(units=neurons, return_sequences=False, dropout=dropout, recurrent_dropout=dropout))
+    for _ in range(hidden):
+        model.add(GRU(units=neurons, return_sequences=True))
+    model.add(GRU(units=neurons, return_sequences=False))
     # Output layer
     model.add(Dense(output_dim, activation='sigmoid'))
 
