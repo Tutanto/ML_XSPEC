@@ -16,12 +16,40 @@ from tensorflow.keras.layers import (
 
 
 def r_squared(y_true, y_pred):
-    SS_res =  K.sum(K.square(y_true - y_pred)) 
+    """
+    Calculates the coefficient of determination, R^2, for the prediction.
+
+    This function computes R^2, a statistical measure of how well the 
+    regression predictions approximate the real data points. An R^2 of
+    1 indicates perfect correlation.
+
+    Parameters:
+    y_true (tensor): True labels.
+    y_pred (tensor): Predicted labels.
+
+    Returns:
+    tensor: The R^2 value.
+    """
+    SS_res = K.sum(K.square(y_true - y_pred)) 
     SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
 
     return 1 - SS_res/(SS_tot + K.epsilon())
 
 def adjusted_r_squared(y_true, y_pred):
+    """
+    Calculates the adjusted R^2, accounting for the number of predictors in the model.
+
+    This function modifies the R^2 value to penalize the model complexity 
+    (number of predictors). It's useful for comparing models with a different 
+    number of predictors.
+
+    Parameters:
+    y_true (tensor): True labels.
+    y_pred (tensor): Predicted labels.
+
+    Returns:
+    tensor: The adjusted R^2 value.
+    """
     r2 = r_squared(y_true, y_pred)
     
     n = tf.cast(tf.shape(y_true)[0], tf.float32)  # Number of data points
@@ -134,16 +162,43 @@ def GRU_model(input_dim, output_dim, neurons=128, hidden=2, learning_rate=1.e-4)
     
     return model
 
-# Function to calculate mean and standard deviation across folds for each epoch
 def calc_mean_std_per_epoch(data):
+    """
+    Calculates mean and standard deviation for each epoch across different folds.
+
+    Useful in scenarios like k-fold cross-validation where you want to 
+    track the performance per epoch across different folds.
+
+    Parameters:
+    data (list of lists): Nested list where each inner list contains 
+                          metrics of each fold for a particular epoch.
+
+    Returns:
+    list, list: Lists containing mean and standard deviation for each epoch.
+    """
     # Transpose to make each row represent an epoch and each column a fold
     transposed_data = list(map(list, zip(*data)))
     means = [np.mean(epoch_data) for epoch_data in transposed_data]
     stds = [np.std(epoch_data) for epoch_data in transposed_data]
     return means, stds
 
-# Plotting function for two metrics
 def plot_two_metrics(epochs, mean_values1, std_values1, label1, mean_values2, std_values2, label2, title):
+    """
+    Plots two metrics over epochs with their means and standard deviations.
+
+    Parameters:
+    epochs (list or array): List or array of epoch numbers.
+    mean_values1 (list or array): Mean values of the first metric for each epoch.
+    std_values1 (list or array): Standard deviation values of the first metric for each epoch.
+    label1 (str): Label for the first metric.
+    mean_values2 (list or array): Mean values of the second metric for each epoch.
+    std_values2 (list or array): Standard deviation values of the second metric for each epoch.
+    label2 (str): Label for the second metric.
+    title (str): Title of the plot.
+
+    Returns:
+    None: This function does not return anything but plots the metrics.
+    """
     plt.figure(figsize=(10, 5))
     plt.plot(epochs, mean_values1, label=f'Mean {label1}')
     plt.fill_between(epochs, np.array(mean_values1) - np.array(std_values1), 

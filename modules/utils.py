@@ -10,26 +10,95 @@ from pathlib import Path
 from scipy.stats import qmc
 
 def extract_number(filename):
+    """
+    Extracts a number from a filename based on a specific pattern.
+
+    The function searches for a pattern 'split_X-Y.npy' in the filename,
+    where X and Y are digits, and returns the value X as an integer.
+    If the pattern is not found, it returns None.
+
+    Parameters:
+    filename (str): The filename from which to extract the number.
+
+    Returns:
+    int or None: The extracted number or None if the pattern is not found.
+    """
     match = re.search(r'split_(\d+)-\d+\.npy', filename)
     if match:
         return int(match.group(1))
     else:
         return None
-
-# Function to save the last successful index to a file
+    
 def save_last_successful_index(index, file_path):
+    """
+    Saves the last successful index to a file.
+
+    This function writes the index to a specified file. It's used to track
+    the progress of a process, allowing for resumption from the last saved point.
+
+    Parameters:
+    index (int): The index to be saved.
+    file_path (str): Path to the file where the index will be saved.
+    """
     with open(file_path, 'w') as file:
         file.write(str(index))
-
-# Function to read the last successful index from a file
+        
 def read_last_successful_index(file_path):
+    """
+    Reads the last successful index from a file.
+
+    Attempts to read an index from a specified file. If the file does not exist,
+    it returns 0, indicating the start of a process.
+
+    Parameters:
+    file_path (str): Path to the file from which to read the index.
+
+    Returns:
+    int: The last successful index, or 0 if the file does not exist.
+    """
     try:
         with open(file_path, 'r') as file:
             return int(file.read())
     except FileNotFoundError:
         return 0  # If the file does not exist, start from the beginning
+    
+def remove_uniform_columns(data):
+    """
+    Removes columns with uniform values across all rows from a numpy array.
+
+    This function identifies and removes columns where all elements are identical,
+    as such columns typically do not provide useful information for analysis.
+
+    Parameters:
+    data (numpy.ndarray): The array from which to remove uniform columns.
+
+    Returns:
+    numpy.ndarray: The array with uniform columns removed.
+    list: List of indices of the columns that were removed.
+    """
+    columns_to_remove = []
+    for i in range(data.shape[1]):
+        if np.all(data[:, i] == data[0, i]):
+            columns_to_remove.append(i)
+    return np.delete(data, columns_to_remove, axis=1), columns_to_remove
 
 def adjust_values(kTe, kTs, Tin):
+    """
+    Adjusts the values of kTe, kTs, and Tin based on certain conditions.
+
+    This function modifies the values of kTs and Tin to ensure they are
+    not greater than certain thresholds based on the value of kTe. The
+    adjustments involve reducing kTs and Tin if they exceed these thresholds,
+    ensuring that they are just below kTe's threshold.
+
+    Parameters:
+    kTe (float): Initial value of kTe.
+    kTs (float): Initial value of kTs.
+    Tin (float): Initial value of Tin.
+
+    Returns:
+    float, float, float: Adjusted values of kTe, kTs, and Tin.
+    """
     val = 0.01
     if kTs >= pow(10, kTe):
         if (pow(10, kTe) - val) > 0:
@@ -235,11 +304,3 @@ def combine_hdf5_files(file_pattern):
             combined_params.extend(hf['params'][:])
 
     return np.array(combined_flux, dtype=object), np.array(combined_params, dtype=object)
-
-# Function to remove columns with identical values across all rows
-def remove_uniform_columns(data):
-    columns_to_remove = []
-    for i in range(data.shape[1]):
-        if np.all(data[:, i] == data[0, i]):
-            columns_to_remove.append(i)
-    return np.delete(data, columns_to_remove, axis=1), columns_to_remove

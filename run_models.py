@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 cwd = Path.cwd()
-path_to_checkpoints = Path(cwd / "checkpoints")
+path_to_checkpoints = cwd / "checkpoints"
 
 # Specify the range of split files you want to process
 start_range = 0
