@@ -23,7 +23,7 @@ if __name__ == "__main__":
     sample_file_name = sys.argv[1]
 
     # Set smoothing
-    smoothing = False
+    smoothing = True
     # Set checkpoint file names
     extracted_number = extract_number(sample_file_name)
     index_file_name = f'last_successful_index_{extracted_number}.txt'
@@ -124,8 +124,8 @@ if __name__ == "__main__":
                 energy = np.array(energy)
                 flux = np.array(flux)
                 n_points = 10
-                energy = energy.reshape(-1, n_points).mean(axis=1)
-                flux = flux.reshape(-1, n_points).mean(axis=1)
+                energy = (energy.reshape(-1, n_points).mean(axis=1)).tolist()
+                flux = (flux.reshape(-1, n_points).mean(axis=1)).tolist()
 
             # Create a dictionary for the parameters
             params_dict = {}

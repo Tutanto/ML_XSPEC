@@ -42,7 +42,7 @@ from modules.utils import (
 from modules.logging_config import logging_conf
 
 # Set the size of the Dataset
-N = 10000
+N = 40000
 # Set checkpoint file names
 sample_scaled_file_name = 'complete_sample.npy'
 
@@ -71,15 +71,6 @@ model = Model(model_name)
 logger.debug(f"Model name: {model_name}")
 logger.debug(f"Model used: {model.componentNames}")
 
-# Changing default frozen parameters to unfrozen
-model.rdblur.Betor10.frozen = False
-model.rdblur.Rout_M.frozen = True
-model.rdblur.Rin_M.frozen = False
-model.rfxconv.Fe_abund.frozen = False
-model.comptb.gamma.frozen = True
-model.comptb.delta.frozen = True
-model.comptb.log_A.frozen = True
-
 # Fixing values, upper and lower limits
 model.TBabs.nH.values = [1.0, 0.01, 0.01, 0.01, 10.0, 10.0]
 model.rdblur.Betor10.values = [-2, 0.02, -10.0,-10.0, 0,0]
@@ -92,6 +83,15 @@ model.comptb.kTs.values = [1.0, 0.01, 0.1, 0.15, 2, 10.0]
 model.comptb.norm.values = [1.0, 0.01, 0.1, 0.1, 1.e0, 1e+24]
 model.diskbb.Tin.values = [1.0, 0.01, 0.1, 0.1, 2, 1000.0]
 model.diskbb.norm.values = [1.0, 0.01, 0.1, 0.1, 1.e4, 1e+24]
+
+# Changing default frozen parameters to unfrozen
+model.rdblur.Betor10.frozen = False
+model.rdblur.Rout_M.frozen = True
+model.rdblur.Rin_M.frozen = False
+model.rfxconv.Fe_abund.frozen = False
+model.comptb.gamma.frozen = True
+model.comptb.delta.frozen = True
+model.comptb.log_A.frozen = True
 
 # Linking the parameters
 model.rfxconv.cosIncl.link = "COSD(5)"

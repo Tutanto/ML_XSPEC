@@ -6,11 +6,11 @@ path_to_checkpoints = cwd / "checkpoints"
 
 # Specify the range of split files you want to process
 start_range = 0
-end_range = 10000
+end_range = 40000
 
 # Loop through the split files and execute the command for each one
-for split_start in range(start_range, end_range, 250):
-    split_stop = split_start + 249
+for split_start in range(start_range, end_range, 1000):
+    split_stop = split_start + 999
     checkpoint_file = path_to_checkpoints / f"last_successful_index_{split_start}.txt"
 
     # Check if the checkpoint file exists

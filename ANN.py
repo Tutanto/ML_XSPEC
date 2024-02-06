@@ -12,7 +12,6 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 cwd = Path.cwd()
-path_to_models = cwd / 'all_models' / 'models_0.5-20_10k'
 path_to_logs = cwd / 'logs'
 path_to_data = cwd / 'data'
 path_to_results = cwd / 'results'
@@ -21,8 +20,8 @@ log_dir = path_to_logs / 'fit'
 log_dir.mkdir(parents=True, exist_ok=True)
 
 # Load the datasets
-X = np.load(path_to_data / 'I.npy', allow_pickle=True)
-Y = np.load(path_to_data / 'O_normalized.npy', allow_pickle=True)
+X = np.load(path_to_data / 'Inp.npy', allow_pickle=True)
+Y = np.load(path_to_data / 'Out_norm.npy', allow_pickle=True)
 
 # Parameters for k-fold validation
 k = 5  # Number of folds
@@ -45,7 +44,7 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 
-    model = ANN_model(X_train.shape[1], y_train.shape[1], neurons=256, hidden=2, dropout=0.3)
+    model = ANN_model(X_train.shape[1], y_train.shape[1], neurons=256, hidden=6, dropout=0.3)
 
     # Train the model
     history = model.fit(
