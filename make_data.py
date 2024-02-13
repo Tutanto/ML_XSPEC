@@ -36,7 +36,7 @@ true_model.rfxconv.cosIncl.link = "COSD(5)"
 
 start = 20  # Number of the first parameter of comptb_6
 for i in range(start, start + len(true_model.comptb_6.parameterNames)):
-    true_model(i).link = str(i) # 9 is the separation between comptb and comptb_6
+    true_model(i).link = str(i-9) # 9 is the separation between comptb and comptb_6
 
 # Collect the relevant parameter (the ones not frozen or linked)
 relevant_par = []

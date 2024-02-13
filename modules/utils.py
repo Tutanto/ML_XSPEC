@@ -232,7 +232,7 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
         col_index = i % n_plots_per_row
 
         # Plot the data on the corresponding subplot
-        axes[row_index, col_index].plot(energy, flux, label=f"Model: {model_name[:10]}")
+        axes[row_index, col_index].plot(energy, flux, label=f"Model: {model_name[:11]}")
         axes[row_index, col_index].set_xlabel('Energy (keV)')
         axes[row_index, col_index].set_xscale('log')
         axes[row_index, col_index].set_ylabel('Flux (cm^2/s/keV)')

@@ -146,9 +146,9 @@ if __name__ == "__main__":
 
             if len(params) < 6:
                 # Create the file name based on parameter values
-                file_name = f"model_{idx:04d}_params" + "_".join([f"{format(param, '.1e')}" for param in params])
+                file_name = f"model_{idx:05d}_params" + "_".join([f"{format(param, '.1e')}" for param in params])
             else:
-                file_name = f"model_{idx:04d}"
+                file_name = f"model_{idx:05d}"
 
             # Save the dictionary as json with the created file name
             with open( path_to_models / f'{file_name}.json', 'w') as json_file:

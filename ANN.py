@@ -11,9 +11,11 @@ from modules.network import ANN_model
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
+data = 'models_0.5-20_100k_smooth_5'
+
 cwd = Path.cwd()
 path_to_logs = cwd / 'logs'
-path_to_data = cwd / 'data'
+path_to_data = cwd / 'data' / data
 path_to_results = cwd / 'results'
 path_to_results.mkdir(parents=True, exist_ok=True)
 log_dir = path_to_logs / 'fit'

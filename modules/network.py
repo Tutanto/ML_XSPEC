@@ -206,6 +206,13 @@ def plot_two_metrics(epochs, mean_values1, std_values1, label1, mean_values2, st
     plt.plot(epochs, mean_values2, label=f'Mean {label2}', linestyle='--')
     plt.fill_between(epochs, np.array(mean_values2) - np.array(std_values2), 
                      np.array(mean_values2) + np.array(std_values2), alpha=0.2, linestyle='--')
+    
+    # Setting the y-axis limits
+    min_ylim = min(min(mean_values1), min(mean_values2))
+    max_ylim = max(max(mean_values1), max(mean_values2))
+    margin = 0.1 * (max_ylim - min_ylim)
+    plt.ylim(min_ylim - margin, max_ylim + margin)
+    
     plt.title(title)
     plt.xlabel('Epochs')
     plt.ylabel('Value')
