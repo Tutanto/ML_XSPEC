@@ -10,10 +10,11 @@ from modules.network import r_squared, GRU_model
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
+data = 'models_0.5-20_100k'
+
 cwd = Path.cwd()
-path_to_models = cwd / 'all_models' / 'models_0.5-20_10k'
 path_to_logs = cwd / 'logs'
-path_to_data = cwd / 'data'
+path_to_data = cwd / 'data' / data
 path_to_results = cwd / 'results'
 path_to_results.mkdir(parents=True, exist_ok=True)
 log_dir = path_to_logs / 'fit'
@@ -22,12 +23,12 @@ log_dir.mkdir(parents=True, exist_ok=True)
 model_file_path = path_to_results / 'GRU_model.h5'
 
 # File paths for the saved datasets
-X_train_file = path_to_results / 'X_train_par.npy'
-y_train_file = path_to_results / 'y_train_flux.npy'
-X_val_file = path_to_results / 'X_val_par.npy'
-y_val_file = path_to_results / 'y_val_flux.npy'
-X_test_file = path_to_results / 'X_test_par.npy'
-y_test_file = path_to_results / 'y_test_flux.npy'
+X_train_file = path_to_data / 'X_train_par.npy'
+y_train_file = path_to_data / 'y_train_flux.npy'
+X_val_file = path_to_data / 'X_val_par.npy'
+y_val_file = path_to_data / 'y_val_flux.npy'
+X_test_file = path_to_data / 'X_test_par.npy'
+y_test_file = path_to_data / 'y_test_flux.npy'
 
 # Check if the model file exists
 if model_file_path.is_file() and X_train_file.is_file():
@@ -45,8 +46,8 @@ if model_file_path.is_file() and X_train_file.is_file():
 else:
     print("No saved model found. Using a new model...")
     # Load the datasets
-    X = np.load(path_to_data / 'I.npy', allow_pickle=True)
-    Y = np.load(path_to_data / 'O_normalized.npy', allow_pickle=True)
+    X = np.load(path_to_data / 'Inp_norm.npy', allow_pickle=True)
+    Y = np.load(path_to_data / 'Out_norm.npy', allow_pickle=True)
 
     # Split the data into training, validation, and test sets
     X_train_par, X_temp_par, y_train_flux, y_temp_flux = train_test_split(
@@ -69,7 +70,7 @@ else:
     np.save(y_test_file, y_test_flux)
 
     # Define the neural network model
-    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1])
+    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=128, hidden=4)
     
 # Create a TensorBoard instance with log directory
 now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -77,8 +78,8 @@ tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 
 # Train the model
 new_history = model.fit(
-    X_train_flux, y_train,
-    validation_data=(X_val_flux, y_val), 
+    X_train_par, y_train_flux,
+    validation_data=(X_val_par, y_val_flux), 
     epochs=10, batch_size=16,
     callbacks=[tensorboard_callback],
     verbose=1
@@ -107,6 +108,6 @@ with open(history_filename, 'w') as f:
     json.dump(existing_history, f)
 
 # Evaluate the model on the test set
-test_loss, test_mae, test_mse, test_r2 = model.evaluate(X_test_flux, y_test)
+test_loss, test_mae, test_mse, test_r2 = model.evaluate(X_test_par, y_test_flux)
 print(f"Test MAE: {test_mae}, Test MSE: {test_mse}, Test R2: {test_r2}")
 print(f'Score: {model.metrics_names[0]} of {test_loss}')
