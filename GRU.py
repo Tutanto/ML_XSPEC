@@ -10,7 +10,7 @@ from modules.network import r_squared, GRU_model
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-data = 'models_0.5-20_100k'
+data = 'models_0.5-20_100k_smooth_2'
 
 cwd = Path.cwd()
 path_to_logs = cwd / 'logs'
@@ -35,12 +35,12 @@ if model_file_path.is_file() and X_train_file.is_file():
     # Load the datasets
     print("Loading the datasets...")
     # Load the datasets
-    X_train_flux = np.load(X_train_file, allow_pickle=True)
-    y_train = np.load(y_train_file, allow_pickle=True)
-    X_val_flux = np.load(X_val_file, allow_pickle=True)
-    y_val = np.load(y_val_file, allow_pickle=True)
-    X_test_flux = np.load(X_test_file, allow_pickle=True)
-    y_test = np.load(y_test_file, allow_pickle=True)
+    X_train_par = np.load(X_train_file, allow_pickle=True)
+    y_train_flux = np.load(y_train_file, allow_pickle=True)
+    X_val_par = np.load(X_val_file, allow_pickle=True)
+    y_val_flux = np.load(y_val_file, allow_pickle=True)
+    X_test_par = np.load(X_test_file, allow_pickle=True)
+    y_test_flux = np.load(y_test_file, allow_pickle=True)
     print("Loading the saved model...")
     model = load_model(model_file_path, custom_objects={'r_squared': r_squared})
 else:
@@ -70,7 +70,7 @@ else:
     np.save(y_test_file, y_test_flux)
 
     # Define the neural network model
-    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=128, hidden=4)
+    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=256, hidden=5)
     
 # Create a TensorBoard instance with log directory
 now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -80,7 +80,7 @@ tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 new_history = model.fit(
     X_train_par, y_train_flux,
     validation_data=(X_val_par, y_val_flux), 
-    epochs=10, batch_size=16,
+    epochs=20, batch_size=16,
     callbacks=[tensorboard_callback],
     verbose=1
 ).history
