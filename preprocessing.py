@@ -17,6 +17,7 @@ from modules.logging_config import logging_conf
 cwd = Path.cwd()
 path_to_models = cwd / 'all_models' / 'models_0.5-20_1k'
 path_to_logs = cwd / 'logs'
+path_to_logs.mkdir(parents=True, exist_ok=True)
 path_to_batches = cwd / 'batches'
 path_to_batches.mkdir(parents=True, exist_ok=True)  # Create the batches directory if it doesn't exist
 path_to_data = cwd / 'data'
@@ -73,6 +74,7 @@ logger.debug("Flux normalized")
 indices_with_nan = np.any(np.isnan(Out_norm), axis=1)
 rows_to_remove = np.sum(indices_with_nan)
 Inp = relevant_parameters[~indices_with_nan]
+Out = all_flux_values[~indices_with_nan]
 Inp_norm = Inp_tmp[~indices_with_nan]
 Out_norm = Out_norm[~indices_with_nan]
 logger.debug(f"Number of rows that contain NaN removed: {rows_to_remove}")
@@ -80,6 +82,7 @@ logger.debug(f"Number of rows that contain NaN removed: {rows_to_remove}")
 # Save the normalized datasets and scalers to disk
 np.save(path_to_data / 'Inp.npy', Inp)
 np.save(path_to_data / 'Inp_norm.npy', Inp_norm)
+np.save(path_to_data / 'Out.npy', Out)
 np.save(path_to_data / 'Out_norm.npy', Out_norm)
 for i, scaler in scalers.items():
     dump(scaler, path_to_data / f'scaler_{i}.joblib')

@@ -1,9 +1,12 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from  pathlib import Path
-from matplotlib import rcParams
+import matplotlib.pyplot as plt
 
 from xspec import AllModels, AllData, Model, Plot
+
+cwd = Path.cwd()
+path_to_data = cwd / 'data' / 'target'
+path_to_data.mkdir(parents=True, exist_ok=True)     # Create the data directory if it doesn't exist
 
 # Clear existing XSPEC models and data
 AllModels.clear()
@@ -27,8 +30,11 @@ true_model.rdblur.Rout_M.values = 1000
 true_model.comptb.delta.values = 0
 true_model.comptb.log_A.values = 8
 
+true_model.rfxconv.rel_refl.values = -0.5
+true_model.rfxconv.log_xi.values = 2
 true_model.comptb.kTe.values = 40
-true_model.comptb.kTs.values = 2
+true_model.comptb.kTs.values = 1
+true_model.comptb.norm.values = 0.5
 
 # Linking the parameters
 true_model.rfxconv.cosIncl.link = "COSD(5)"
@@ -67,3 +73,8 @@ plt.errorbar(energy, y, yerr=yerr, fmt=".c", capsize=0)
 plt.plot(energy,true_flux, "c", alpha=0.3, lw=3)
 plt.ylabel("Flux(1 / keV cm^-2 s)")
 plt.xlabel("Energy (KeV)")
+
+# Saving the data to disk
+np.save(path_to_data / 'energy_true.npy', energy)
+np.save(path_to_data / 'y_true.npy', y)
+np.save(path_to_data / 'yerr.npy', yerr)
