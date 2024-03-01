@@ -10,7 +10,7 @@ from modules.network import r_squared, GRU_model
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-data = 'models_0.5-20_100k_smooth_2'
+data = 'models_0.5-20_100k'
 
 cwd = Path.cwd()
 path_to_logs = cwd / 'logs'
