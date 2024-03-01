@@ -15,7 +15,7 @@ from modules.logging_config import logging_conf
 
 # Define the current working directory and paths for models, logs, batches, and data
 cwd = Path.cwd()
-path_to_models = cwd / 'all_models' / 'models_0.5-20_1k'
+path_to_models = cwd / 'all_models' / 'models_0.5-20_100k_smooth_2'
 path_to_logs = cwd / 'logs'
 path_to_logs.mkdir(parents=True, exist_ok=True)
 path_to_batches = cwd / 'batches'
