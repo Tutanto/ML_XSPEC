@@ -80,7 +80,7 @@ tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 new_history = model.fit(
     X_train_par, y_train_flux,
     validation_data=(X_val_par, y_val_flux), 
-    epochs=20, batch_size=16,
+    epochs=100, batch_size=16,
     callbacks=[tensorboard_callback],
     verbose=1
 ).history
