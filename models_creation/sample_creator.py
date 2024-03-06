@@ -31,7 +31,6 @@ Usage:
 import datetime
 import numpy as np
 from xspec import Model
-from pathlib import Path
 from scipy.stats import qmc
 
 # Import custom modules
@@ -39,7 +38,8 @@ from modules.utils import (
     generate_latin_hypercube, 
     indices_satisfying_condition
     )
-from modules.logging_config import logging_conf
+from logging_config import logging_conf
+from modules.variables import *
 
 # Set the size of the Dataset
 N = 40000
@@ -47,10 +47,7 @@ N = 40000
 sample_scaled_file_name = 'complete_sample.npy'
 
 # Set up paths for logs and models
-cwd = Path.cwd()
-path_to_logs = Path(cwd / "logs")
 path_to_logs.mkdir(parents=True, exist_ok=True)
-path_to_samples = Path(cwd / "samples")
 path_to_samples.mkdir(parents=True, exist_ok=True)
 sample_scaled_file_path = path_to_samples / sample_scaled_file_name
 

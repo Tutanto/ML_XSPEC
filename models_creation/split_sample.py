@@ -1,7 +1,8 @@
 import datetime
 import numpy as np
-from pathlib import Path
-from modules.logging_config import logging_conf
+from logging_config import logging_conf
+
+from modules.variables import *
 
 def load_and_split_npy(file_path, file_name, num_splits):
     """
@@ -34,10 +35,7 @@ if __name__ == "__main__":
     num_splits = 40
 
     # Set up paths for logs and models
-    cwd = Path.cwd()
-    path_to_logs = Path(cwd / "logs")
     path_to_logs.mkdir(parents=True, exist_ok=True)
-    path_to_samples = Path(cwd / "samples")
     path_to_samples.mkdir(parents=True, exist_ok=True)
 
     # Get the current date and time

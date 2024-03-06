@@ -1,8 +1,8 @@
 import sys
-from pathlib import Path
 
 # Import custom modules
 from modules.utils import plot_random_sample
+from modules.variables import path_to_all_models
 
 def is_valid_number(n, max_value):
     """
@@ -28,12 +28,17 @@ def is_valid_number(n, max_value):
 
 if __name__ == "__main__":
     
-    # Get the input value for n_plots_per_row from command line arguments
+    if len(sys.argv) < 3:
+        print("Usage: script.py <n_plots_per_row> <path_to_models>")
+        sys.exit(1)
+        
+    # Get the input value from command line arguments
     n_plots_per_row_input = sys.argv[1]
+    input_path_to_models = sys.argv[2]
+
 
     # Set up paths for logs and models
-    cwd = Path.cwd()
-    path_to_models = Path(cwd / 'all_models' / 'models_0.5-20_100k_smooth_2')
+    path_to_models = path_to_all_models / input_path_to_models
 
     # Get the count of files in models directory to set an upper limit for n_plots_per_row
     num_files = len(list(path_to_models.glob('*')))

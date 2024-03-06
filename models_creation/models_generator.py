@@ -4,7 +4,6 @@ import json
 import datetime
 import numpy as np
 from xspec import AllModels, AllData, Model, Plot
-from pathlib import Path
 
 # Import custom modules
 from modules.utils import (
@@ -12,12 +11,14 @@ from modules.utils import (
     read_last_successful_index,
     save_last_successful_index,
     )
-from modules.logging_config import logging_conf
+from modules.variables import *
+
+from logging_config import logging_conf
 
 if __name__ == "__main__":
      
     if len(sys.argv) < 2:
-        print("Usage: python my_script.py <filename>")
+        print("Usage: python models_generator.py <filename>")
         sys.exit(1)
     
     sample_file_name = sys.argv[1]
@@ -29,13 +30,8 @@ if __name__ == "__main__":
     index_file_name = f'last_successful_index_{extracted_number}.txt'
 
     # Set up paths for logs and models
-    cwd = Path.cwd()
-    path_to_logs = Path(cwd / "logs")
     path_to_logs.mkdir(parents=True, exist_ok=True)
-    path_to_models = Path(cwd / "models")
     path_to_models.mkdir(parents=True, exist_ok=True)
-    path_to_samples = Path(cwd / "samples")
-    path_to_checkpoints = Path(cwd / "checkpoints")
     path_to_checkpoints.mkdir(parents=True, exist_ok=True)
     sample_file_path = path_to_samples / sample_file_name
     index_file_path = path_to_checkpoints / index_file_name
