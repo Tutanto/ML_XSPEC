@@ -1,6 +1,6 @@
 import os
 
-from modules.variables import *
+from modules.variables import path_to_checkpoints
 
 # Specify the range of split files you want to process
 start_range = 0

@@ -5,8 +5,7 @@ root_dir = cwd.parent
 
 # Set up paths for logs and models
 path_to_logs = root_dir / "logs"
-path_to_models = root_dir / "models"
-path_to_samples = root_dir / "samples"
+path_to_data = root_dir / "data"
 path_to_batches = root_dir / "batches"
-path_to_all_models = root_dir / "all_models"
-path_to_checkpoints = root_dir / "checkpoints"
+path_to_results = root_dir / "results"
+path_to_all_models = root_dir.parent / "models_creation" / "all_models"

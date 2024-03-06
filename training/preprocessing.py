@@ -2,7 +2,6 @@ import h5py
 import datetime
 import numpy as np
 from joblib import dump
-from pathlib import Path
 
 from sklearn.preprocessing import MinMaxScaler
 
@@ -11,16 +10,19 @@ from modules.utils import (
     combine_hdf5_files, 
     remove_uniform_columns
 )
-from modules.logging_config import logging_conf
+from modules.variables import (
+    path_to_logs,
+    path_to_data,
+    path_to_batches,
+    path_to_all_models
+)
+
+from logging_config import logging_conf
 
 # Define the current working directory and paths for models, logs, batches, and data
-cwd = Path.cwd()
-path_to_models = cwd / 'all_models' / 'models_0.5-20_100k'
-path_to_logs = cwd / 'logs'
+path_to_models = path_to_all_models / 'models_0.5-20_100k'
 path_to_logs.mkdir(parents=True, exist_ok=True)
-path_to_batches = cwd / 'batches'
 path_to_batches.mkdir(parents=True, exist_ok=True)  # Create the batches directory if it doesn't exist
-path_to_data = cwd / 'data'
 path_to_data.mkdir(parents=True, exist_ok=True)     # Create the data directory if it doesn't exist
 
 # Initialize the logging process with timestamp

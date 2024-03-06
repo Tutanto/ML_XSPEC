@@ -39,7 +39,10 @@ from modules.utils import (
     indices_satisfying_condition
     )
 from logging_config import logging_conf
-from modules.variables import *
+from modules.variables import (
+    path_to_logs,
+    path_to_samples
+)
 
 # Set the size of the Dataset
 N = 40000

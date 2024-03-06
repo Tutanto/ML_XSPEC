@@ -2,7 +2,10 @@ import datetime
 import numpy as np
 from logging_config import logging_conf
 
-from modules.variables import *
+from modules.variables import (
+    path_to_logs,
+    path_to_samples
+)
 
 def load_and_split_npy(file_path, file_name, num_splits):
     """

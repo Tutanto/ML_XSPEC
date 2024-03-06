@@ -11,7 +11,12 @@ from modules.utils import (
     read_last_successful_index,
     save_last_successful_index,
     )
-from modules.variables import *
+from modules.variables import (
+    path_to_logs,
+    path_to_models,
+    path_to_samples,
+    path_to_checkpoints
+)
 
 from logging_config import logging_conf
 

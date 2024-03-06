@@ -8,14 +8,17 @@ from tensorflow.keras.callbacks import TensorBoard
 from sklearn.model_selection import train_test_split
 from modules.network import r_squared, GRU_model
 
+from modules.variables import (
+    path_to_logs,
+    path_to_data,
+    path_to_results
+)
+
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 data = 'models_0.5-20_100k'
 
-cwd = Path.cwd()
-path_to_logs = cwd / 'logs'
-path_to_data = cwd / 'data' / data
-path_to_results = cwd / 'results'
+path_to_data = path_to_data / data
 path_to_results.mkdir(parents=True, exist_ok=True)
 log_dir = path_to_logs / 'fit'
 log_dir.mkdir(parents=True, exist_ok=True)
