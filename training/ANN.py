@@ -16,7 +16,7 @@ from modules.variables import (
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-data = 'models_0.5-20_100k_smooth_5'
+data = 'models_0.5-20_100k'
 
 path_to_data = path_to_data / data
 path_to_results.mkdir(parents=True, exist_ok=True)
