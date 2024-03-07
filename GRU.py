@@ -70,7 +70,7 @@ else:
     np.save(y_test_file, y_test_flux)
 
     # Define the neural network model
-    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=256, hidden=5)
+    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=256, hidden=6)
     
 # Create a TensorBoard instance with log directory
 now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -80,7 +80,7 @@ tensorboard_callback = TensorBoard(log_dir=log_dir / now, histogram_freq=1)
 new_history = model.fit(
     X_train_par, y_train_flux,
     validation_data=(X_val_par, y_val_flux), 
-    epochs=100, batch_size=16,
+    epochs=200, batch_size=16,
     callbacks=[tensorboard_callback],
     verbose=1
 ).history
