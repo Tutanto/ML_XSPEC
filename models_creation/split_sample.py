@@ -35,7 +35,7 @@ def load_and_split_npy(file_path, file_name, num_splits):
 # Usage example
 if __name__ == "__main__":
     sample_scaled_file_name = 'complete_sample.npy'  # Replace with your file path
-    num_splits = 40
+    num_splits = 10
 
     # Set up paths for logs and models
     path_to_logs.mkdir(parents=True, exist_ok=True)

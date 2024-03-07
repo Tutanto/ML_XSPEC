@@ -107,7 +107,7 @@ if __name__ == "__main__":
             # Linking comptb_6 (refletion) parameters to comptb (comptb)
             start = 20  # Number of the first parameter of comptb_6
             for i in range(start, start + len(m.comptb_6.parameterNames)):
-                m(i).link = m(i-9) # 9 is the separation between comptb and comptb_6
+                m(i).link = str(i-9) # 9 is the separation between comptb and comptb_6
 
             # Add the model to the spectral analysis system and set parameters
             AllModels.setPars(m, {int(relevant_par[j]):params[j] for j in range(len(relevant_par))})

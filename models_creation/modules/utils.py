@@ -215,7 +215,7 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
         axes[row_index, col_index].plot(energy, flux, label=f"Model: {model_name[:11]}")
         axes[row_index, col_index].set_xlabel('Energy (keV)')
         axes[row_index, col_index].set_xscale('log')
-        axes[row_index, col_index].set_ylabel('Flux (cm^2/s/keV)')
+        axes[row_index, col_index].set_ylabel('Flux (1 / keV cm^-2 s)')
         axes[row_index, col_index].legend()
 
     # Adjust layout and display the plots

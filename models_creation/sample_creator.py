@@ -45,7 +45,7 @@ from modules.variables import (
 )
 
 # Set the size of the Dataset
-N = 40000
+N = 100
 # Set checkpoint file names
 sample_scaled_file_name = 'complete_sample.npy'
 
@@ -98,7 +98,7 @@ model.rfxconv.cosIncl.link = "COSD(5)"
 # Linking comptb_6 (refletion) parameters to comptb (comptb)
 start = 20  # Number of the first parameter of comptb_6
 for i in range(start, start + len(model.comptb_6.parameterNames)):
-    model(i).link = model(i-9) # 9 is the separation between comptb and comptb_6
+    model(i).link = str(i-9) # 9 is the separation between comptb and comptb_6
 
 logger.debug(model.show())
 
