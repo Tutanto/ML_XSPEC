@@ -1,18 +1,28 @@
-import corner
-import emcee
 import time
+import emcee
 import numpy as np
+import matplotlib.pyplot as plt
 
 from joblib import load
-from pathlib import Path
 from multiprocessing import Pool
 from scipy.optimize import minimize
-from IPython.display import display, Math
+from IPython.display import Math
 from tensorflow.keras.models import load_model
+
+from logging_config import logging_conf
 
 from modules.parameters import Parameters
 from modules.network import r_squared
-from modules.variables import path_to_data, path_to_mcmc, path_to_results
+from modules.variables import (
+    params,
+    par_original,
+    path_to_mcmc,
+    path_to_data, 
+    path_to_logs,
+    path_to_plots,
+    path_to_results,
+    path_to_data_points
+)
 
 def Model(x, par):
     x_grid = (np.array(x).reshape(-1, n_points).mean(axis=1)).tolist()
@@ -52,41 +62,35 @@ def log_probability(theta):
         return -np.inf, None
     return lp + log_likelihood(theta), lp
 
-data = 'models_0.5-20_100k_smooth_2'
+# Set up log configuration and create a logger for the fit
+path_to_logs.mkdir(exist_ok=True)
+logger = logging_conf(path_to_logs, "mcmc.log")
 
+# Debug: Log the start of the script
+logger.debug("Script started.")
+
+# Set up paths for logs and models
+path_to_mcmc.mkdir(exist_ok=True)  # Create the directory if it doesn't exist
+path_to_plots.mkdir(exist_ok=True)
+
+n_points = 1
+data = 'models_0.5-20_100k'
 path_to_data_scaler = path_to_data / data
-target_file_path = path_to_data / 'target'
-path_to_mcmc.mkdir(exist_ok=True)  # Create the directory if it doesn't exist'
+flux_scaler = load(path_to_data / 'flux_scaler.joblib') # Load the saved scaler
+logger.debug(f"Reading Scalers from: {path_to_data_scaler}")
 
-result_dir = path_to_results / 'GRU' / f'100k' / '256x5'
+result_dir = path_to_results / 'GRU' / '100k' / '256x5'
 model_file_path = result_dir / 'GRU_model.h5'
+model = load_model(model_file_path, custom_objects={'r_squared': r_squared})
+logger.debug(f"Reading Deep Learning model from: {model_file_path}")
 
+target_file_path = path_to_data_points / 'target'
 xd = np.load(target_file_path / 'energy_true.npy', allow_pickle=True)
 yd = np.load(target_file_path / 'y_true.npy', allow_pickle=True)
 yderr = np.load(target_file_path / 'yerr.npy', allow_pickle=True)
+logger.debug(f"Reading data points to fit from: {target_file_path}")
 
-model = load_model(model_file_path, custom_objects={'r_squared': r_squared})
-# Load the saved scaler
-flux_scaler = load(path_to_data / 'flux_scaler.joblib')
-
-# The "true" parameters.
-params = Parameters(
-    nH=np.log10(1.0), 
-    Betor10=-2, 
-    Rin_M=10, 
-    Incl=30, 
-    rel_refl=-0.5, 
-    Fe_abund=1, 
-    log_xi=2, 
-    kTs=1, 
-    alpha=2, 
-    kTe=np.log10(40), 
-    norm=0.5, 
-    Tin=1, 
-    norm_disk=np.log10(1), 
-    f_true=np.log10(0.2))
-
-par_original = params.to_array()
+logger.debug(f"The true parameters are: {par_original}")
 
 np.random.seed(42)
 nll = lambda *args: -log_likelihood(*args)
@@ -97,47 +101,51 @@ params_ml = Parameters()
 params_ml.update_from_array(soln.x)
 par_ml = params_ml.to_array()
 
-print("Maximum likelihood estimates:")
-print(params_ml)
+logger.debug("Maximum likelihood estimates:")
+logger.debug(f"{params_ml}")
 
-plt.errorbar(xd, yd, yerr=yderr, fmt=".c", capsize=0, alpha=0.02)
+plt.errorbar(xd, yd, yerr=yderr, fmt=".c", capsize=0, alpha=0.02, label="True Points")
 plt.plot(xd, Model(xd, par_ml[:-1]), ":r", label="ML")
 plt.legend(fontsize=14)
 plt.xlabel("x")
 plt.ylabel("y")
+# Save the last plot to the specified directory
+plot_path = path_to_plots / "quick_fit.png"
+plt.savefig(plot_path)
+logger.debug(f"Plot saved to: {plot_path}")
 
-init = par_original
+init = par_ml
 
-pos = init + 1e-1 * np.random.randn(256, len(init))
+pos = init + 1e-2 * np.random.randn(256, len(init))
 nwalkers, ndim = pos.shape
-max_n = 5000
+max_n = 2500
 
 # Set up the backend
 # Don't forget to clear it in case the file already exists
-filename = "tutorial.h5"
-backend = emcee.backends.HDFBackend(mcmc_path / filename)
+filename = "mcmc.h5"
+backend = emcee.backends.HDFBackend(path_to_mcmc / filename)
 backend.reset(nwalkers, ndim)
 
 start_time = time.time()
 
-print('start sampler')
+logger.debug('Start sampler')
 
-'''with Pool() as pool:
+with Pool() as pool:
     sampler = emcee.EnsembleSampler(
-    nwalkers, 
-    ndim, 
-    log_probability, 
-    moves=[
-        (emcee.moves.DEMove(), 0.8),
-        (emcee.moves.DESnookerMove(), 0.2),
-    ], 
-    backend=backend, 
-    blobs_dtype=float, 
-    a=3.0)
+        nwalkers, 
+        ndim, 
+        log_probability, 
+        moves=[
+            (emcee.moves.DEMove(), 0.8),
+            (emcee.moves.DESnookerMove(), 0.2),
+            ], 
+        backend=backend, 
+        blobs_dtype=float, 
+        a=3.0)
 
-    sampler.run_mcmc(pos, 1000, progress=True)'''
+    sampler.run_mcmc(pos, max_n, progress=True)
 
-sampler = emcee.EnsembleSampler(
+'''sampler = emcee.EnsembleSampler(
     nwalkers, 
     ndim, 
     log_probability, 
@@ -150,6 +158,19 @@ sampler = emcee.EnsembleSampler(
     #a=5.0
     )
 sampler.run_mcmc(pos, max_n, progress=True)
+'''
 
+logger.debug(f"--- {time.time() - start_time} seconds ---")
 
-print("--- %s seconds ---" % (time.time() - start_time))
+samples = sampler.get_chain()
+names = [name for name in params.__dict__]
+labels = names[:-1]
+
+for i in range(ndim):
+    mcmc = np.percentile(samples[:, i], [16, 50, 84])
+    q = np.diff(mcmc)
+    txt = "\mathrm{{{3}}} = {0:.3f}_{{-{1:.3f}}}^{{{2:.3f}}}"
+    txt = txt.format(mcmc[1], q[0], q[1], labels[i])
+    logger.debug(Math(txt))
+logger.debug("True values:")
+logger.debug(params)
