@@ -1,7 +1,7 @@
 import re
 import math
-import json
 import h5py
+import pickle
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -164,7 +164,7 @@ def indices_satisfying_condition(my_list, condition_func):
 
 def plot_random_sample(path_to_models, n_plots_per_row=3):
     """
-    Reads a random sample of JSON files and plots them in an array of plots.
+    Reads a random sample of pickle files and plots them in an array of plots.
 
     Parameters:
     - path_to_models (Path): Path to the directory containing the JSON files.
@@ -182,11 +182,11 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
     if not isinstance(n_plots_per_row, int) or n_plots_per_row <= 0:
         raise ValueError("Invalid value for n_plots_per_row. Please provide a positive integer.")
     
-    # Get a list of all JSONS files in the specified directory
-    json_files = list(path_to_models.glob("model_*.json"))
+    # Get a list of all pickle files in the specified directory
+    pickle_files = list(path_to_models.glob("model_*.pkl"))
 
     # Randomly select n_plots_per_row^2 files from the list
-    selected_files = random.sample(json_files, n_plots_per_row**2)
+    selected_files = random.sample(pickle_files, n_plots_per_row**2)
 
     # Calculate the number of rows needed
     n_rows = int(math.ceil(len(selected_files) / n_plots_per_row))
@@ -197,12 +197,12 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
     # Iterate through selected files and plot each one
     for i, file_path in enumerate(selected_files):
         # Read the JSON data from the file
-        with open(file_path, 'r') as json_file:
-            json_data = json.load(json_file)
+        with open(file_path, 'rb') as pickle_file:
+            pickle_data = pickle.load(pickle_file)
 
         # Extract energy and flux from the JSON data (replace 'Energy' and 'Flux' with your actual keys)
-        energy = json_data['energy (keV)']
-        flux = json_data['flux (1 / keV cm^-2 s)']
+        energy = pickle_data['energy (keV)']
+        flux = pickle_data['flux (counts / keV s)']
 
         # Get the name of the model from the file path
         model_name = file_path.stem
@@ -215,7 +215,7 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
         axes[row_index, col_index].plot(energy, flux, label=f"Model: {model_name[:11]}")
         axes[row_index, col_index].set_xlabel('Energy (keV)')
         axes[row_index, col_index].set_xscale('log')
-        axes[row_index, col_index].set_ylabel('Flux (1 / keV cm^-2 s)')
+        axes[row_index, col_index].set_ylabel('Counts / (keV * s)')
         axes[row_index, col_index].legend()
 
     # Adjust layout and display the plots
@@ -226,12 +226,12 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
 # path_to_models = Path("/path/to/models")
 # plot_random_sample(path_to_models, n_plots_per_row=3)
 
-def process_json_files_batch(models_folder_path, batch_size=1000):
+def process_pickle_files_batch(models_folder_path, batch_size=1000):
     """
-    Process .json files in batches.
+    Process .pkl files in batches.
 
     Parameters:
-    - models_folder_path (Path): Path object pointing to the directory containing the .json files.
+    - models_folder_path (Path): Path object pointing to the directory containing the .pkl files.
     - batch_size (int): Number of files to process in each batch.
 
     Yields processed data in batches.
@@ -243,14 +243,14 @@ def process_json_files_batch(models_folder_path, batch_size=1000):
     batch_params = []
     count = 0
 
-    # Iterate over each .json file in the specified directory
-    sorted_models = list(models_folder_path.glob("*.json"))
+    # Iterate over each .pkl file in the specified directory
+    sorted_models = list(models_folder_path.glob("*.pkl"))
     random.shuffle(sorted_models)
     for filepath in sorted_models:
-        with open(filepath, 'r') as file:
-            data = json.load(file)
+        with open(filepath, 'rb') as file:
+            data = pickle.load(file)
 
-        batch_flux.append(data['flux (1 / keV cm^-2 s)'])
+        batch_flux.append(data['flux (counts / keV s)'])
         batch_params.append(list(data['parameters'].values()))
 
         count += 1

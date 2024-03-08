@@ -4,11 +4,11 @@ from modules.variables import path_to_checkpoints
 
 # Specify the range of split files you want to process
 start_range = 0
-end_range = 100
+end_range = 1000
 
 # Loop through the split files and execute the command for each one
-for split_start in range(start_range, end_range, 10):
-    split_stop = split_start + 9
+for split_start in range(start_range, end_range, 200):
+    split_stop = split_start + 199
     checkpoint_file = path_to_checkpoints / f"last_successful_index_{split_start}.txt"
 
     # Check if the checkpoint file exists

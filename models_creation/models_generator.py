@@ -1,9 +1,9 @@
 # Import necessary libraries
 import sys
-import json
+import pickle
 import datetime
 import numpy as np
-from xspec import AllModels, AllData, Model, Plot
+from xspec import FakeitSettings, AllModels, AllData, Model, Plot
 
 # Import custom modules
 from modules.utils import (
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     sample_file_name = sys.argv[1]
 
     # Set smoothing
-    smoothing = True
+    smoothing = False
     # Set checkpoint file names
     extracted_number = extract_number(sample_file_name)
     index_file_name = f'last_successful_index_{extracted_number}.txt'
@@ -53,13 +53,14 @@ if __name__ == "__main__":
     logger.debug("Script started.")
 
     model_name = "TBabs*(rdblur*rfxconv*comptb + diskbb + comptb)"
+    fs1 = FakeitSettings(response="files/ni5050300117mpu7.rmf", arf="files/ni5050300117mpu7.arf", exposure="1e5", fileName='test.fak')
 
     logger.debug("Latin Hypercube exists already. Loading from disk.")
     sample_scaled = np.load(sample_file_path)
     relevant_par =  np.load(path_to_samples / "relevant_par.npy")
 
     # Invert the log10 of these components
-    log_index = [0, 9, 12]
+    log_index = [12]
     for i in range(sample_scaled.shape[0]):
         for j in log_index:
             sample_scaled[i, j] =  pow(10, sample_scaled[i, j])
@@ -85,9 +86,9 @@ if __name__ == "__main__":
             # Clear existing XSPEC models and data
             AllModels.clear()
             AllData.clear()
-            AllData.dummyrsp(0.5, 20.)
 
             # Initialize the model
+            logger.debug("Initialize the model")
             m = Model(model_name)
 
             # Changing default frozen parameters to unfrozen
@@ -111,15 +112,21 @@ if __name__ == "__main__":
 
             # Add the model to the spectral analysis system and set parameters
             AllModels.setPars(m, {int(relevant_par[j]):params[j] for j in range(len(relevant_par))})
-
+            logger.debug("Adding parameters")
+            AllData.fakeit(1, fs1)
+            AllData.ignore('**-0.3')
+            AllData.ignore('10.-**')
+            logger.debug("Faking spectrum")
+            
             # Set up the energy range of interest for plotting
             Plot.device = "/null"
             Plot.xAxis = "keV"
             Plot.show()
-            Plot('model')
+            Plot('data')
             energy = Plot.x()
             flux = Plot.model()
-
+            logger.debug("Plotted spectrum")
+            
             # Smooth the data by averaging every 'n_points' consecutive points
             if smoothing:
                 energy = np.array(energy)
@@ -133,7 +140,7 @@ if __name__ == "__main__":
             for i in range(1, m.nParameters+1):
                 if not m(i).frozen and not m(i).link:
                     # Restore the log10 value and save it in the json
-                    if i in [1, 15, 19]:
+                    if i in [19]:
                         params_dict[str(i)+" log"] = np.log10(m(i).values[0])
                     else:
                         params_dict[str(i)] = m(i).values[0]
@@ -142,7 +149,7 @@ if __name__ == "__main__":
             data = {
                 'parameters' : params_dict,
                 'energy (keV)': energy,
-                'flux (1 / keV cm^-2 s)': flux
+                'flux (counts / keV s)': flux
             }
 
             if len(params) < 6:
@@ -151,10 +158,13 @@ if __name__ == "__main__":
             else:
                 file_name = f"model_{idx:05d}"
 
-            # Save the dictionary as json with the created file name
+            '''# Save the dictionary as json with the created file name
             with open( path_to_models / f'{file_name}.json', 'w') as json_file:
-                json.dump(data, json_file)
-        
+                json.dump(data, json_file)'''
+            # Save the dictionary to file with the created file name
+            with open(path_to_models / f'{file_name}.pkl', "wb") as pickle_file:
+                pickle.dump(data, pickle_file)
+                
             # Save the current index as the last successful one
             save_last_successful_index(idx, index_file_path)
         

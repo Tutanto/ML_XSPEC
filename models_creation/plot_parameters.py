@@ -1,14 +1,13 @@
 import sys
 import h5py
-import json
+import pickle
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from pathlib import Path
 
 # Import custom modules
 from modules.utils import (
-    process_json_files_batch,
+    process_pickle_files_batch,
     combine_hdf5_files)
 
 from modules.variables import path_to_all_models, path_to_batches
@@ -19,8 +18,8 @@ def plot(input_path_to_models):
     # Ensure the path to batches exists
     path_to_batches.mkdir(parents=True, exist_ok=True)
 
-    # Read the json models in batches
-    for i, (flux, params) in enumerate(process_json_files_batch(path_to_models)):
+    # Read the pickle models in batches
+    for i, (flux, params) in enumerate(process_pickle_files_batch(path_to_models)):
         with h5py.File(path_to_batches / f'batch_{i}.h5', 'w') as hf:
             hf.create_dataset('flux', data=flux)
             hf.create_dataset('params', data=params)
@@ -31,9 +30,9 @@ def plot(input_path_to_models):
     all_parameters = np.array(all_parameters, dtype=float)
 
     # Read one model
-    model = list(path_to_models.glob("*json"))[0]
-    with open(model, 'r') as file:
-        data = json.load(file)
+    model = list(path_to_models.glob("*pkl"))[0]
+    with open(model, 'rb') as file:
+        data = pickle.load(file)
         par_names = list(data['parameters'].keys())
 
     # Setting up the plot
