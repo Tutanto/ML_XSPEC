@@ -1,5 +1,5 @@
-import json
 import h5py
+import pickle
 import random
 import numpy as np
 
@@ -25,12 +25,12 @@ def remove_uniform_columns(data):
             columns_to_remove.append(i)
     return np.delete(data, columns_to_remove, axis=1), columns_to_remove
 
-def process_json_files_batch(models_folder_path, batch_size=1000):
+def process_pickle_files_batch(models_folder_path, batch_size=1000):
     """
-    Process .json files in batches.
+    Process .pkl files in batches.
 
     Parameters:
-    - models_folder_path (Path): Path object pointing to the directory containing the .json files.
+    - models_folder_path (Path): Path object pointing to the directory containing the .pkl files.
     - batch_size (int): Number of files to process in each batch.
 
     Yields processed data in batches.
@@ -42,14 +42,14 @@ def process_json_files_batch(models_folder_path, batch_size=1000):
     batch_params = []
     count = 0
 
-    # Iterate over each .json file in the specified directory
-    sorted_models = list(models_folder_path.glob("*.json"))
+    # Iterate over each .pkl file in the specified directory
+    sorted_models = list(models_folder_path.glob("*.pkl"))
     random.shuffle(sorted_models)
     for filepath in sorted_models:
-        with open(filepath, 'r') as file:
-            data = json.load(file)
+        with open(filepath, 'rb') as file:
+            data = pickle.load(file)
 
-        batch_flux.append(data['flux (1 / keV cm^-2 s)'])
+        batch_flux.append(data['flux (counts / keV s)'])
         batch_params.append(list(data['parameters'].values()))
 
         count += 1

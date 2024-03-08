@@ -6,7 +6,7 @@ from joblib import dump
 from sklearn.preprocessing import MinMaxScaler
 
 from modules.utils import (
-    process_json_files_batch, 
+    process_pickle_files_batch, 
     combine_hdf5_files, 
     remove_uniform_columns
 )
@@ -33,10 +33,10 @@ logger.debug("Script started.")
 logger.debug(f"Models: {path_to_models}")
 
 # Check for existing batch files and process new batches if necessary
-logger.debug("Reading the json models file in batches...")
+logger.debug("Reading the pickle models file in batches...")
 existing_batches = list(path_to_batches.glob('batch_*.h5'))
 if not existing_batches:
-    for i, (flux, params) in enumerate(process_json_files_batch(path_to_models)):
+    for i, (flux, params) in enumerate(process_pickle_files_batch(path_to_models)):
         with h5py.File(path_to_batches / f'batch_{i}.h5', 'w') as hf:
             hf.create_dataset('flux', data=flux)
             hf.create_dataset('params', data=params)
