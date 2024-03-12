@@ -45,7 +45,7 @@ from modules.variables import (
 )
 
 # Set the size of the Dataset
-N = 1000
+N = 100000
 # Set checkpoint file names
 sample_scaled_file_name = 'complete_sample.npy'
 
