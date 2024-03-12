@@ -37,15 +37,14 @@ from modules.variables import (
 )
 
 # Define data and smoothing points
-data = 'models_0.5-20_100k_smooth_2'
-n_points = 2
+data = 'models_100k'
+n_points = 0
 
 # Set up paths for logs and models
 path_to_logs.mkdir(parents=True, exist_ok=True)
 path_to_plots.mkdir(parents=True, exist_ok=True)
-#result_dir = path_to_results / 'ANN' / '100k' / 'batchnorm' / 'drop_0.3' /'lr_1e-4' / '256x4_500e'
-result_dir = path_to_results / 'GRU' / '100k_smooth_2' / '256x5'
-model_file_path = result_dir / 'GRU_model.h5'
+result_dir = path_to_results / 'GRU' / '256x4'
+model_file_path = result_dir / 'GRU_model_norm.h5'
 path_to_data_scaler = path_to_data / data
 
 # Set up log configuration and create a logger for the fit
@@ -74,7 +73,7 @@ if 'norm' in model_file_path.name:
         parameters[:, i] = loaded_scalers[i].fit_transform(sample_scaled[:, i].reshape(-1,1)).flatten()
 
 # Invert the log10 of these components
-log_index = [0, 9, 12]
+log_index = [12]
 for i in range(sample_scaled.shape[0]):
     for j in log_index:
         sample_scaled[i, j] =  pow(10, sample_scaled[i, j])

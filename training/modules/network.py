@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 import tensorflow as tf
 from tensorflow.keras import backend as K
@@ -182,39 +181,51 @@ def calc_mean_std_per_epoch(data):
     stds = [np.std(epoch_data) for epoch_data in transposed_data]
     return means, stds
 
-def plot_two_metrics(epochs, mean_values1, std_values1, label1, mean_values2, std_values2, label2, title):
+def plot_two_metrics(epochs, mean_values1, std_values1, label1, mean_values2, std_values2, label2, title, ax):
     """
-    Plots two metrics over epochs with their means and standard deviations.
+    Plots two sets of metrics, including their means and standard deviations over epochs, on a single matplotlib axis.
+
+    This function is designed to compare two different metrics (e.g., accuracy and loss) across epochs in a training process. It plots the mean values of each metric over epochs and shades the area between the mean ± standard deviation to visually represent the variability.
 
     Parameters:
-    epochs (list or array): List or array of epoch numbers.
-    mean_values1 (list or array): Mean values of the first metric for each epoch.
-    std_values1 (list or array): Standard deviation values of the first metric for each epoch.
-    label1 (str): Label for the first metric.
-    mean_values2 (list or array): Mean values of the second metric for each epoch.
-    std_values2 (list or array): Standard deviation values of the second metric for each epoch.
-    label2 (str): Label for the second metric.
-    title (str): Title of the plot.
+    - epochs (list or ndarray): A sequence of epochs, typically an array of integers or floats, representing the training epochs.
+    - mean_values1 (list or ndarray): Mean values of the first metric for each epoch.
+    - std_values1 (list or ndarray): Standard deviation of the first metric for each epoch.
+    - label1 (str): Label for the first metric, used in the legend.
+    - mean_values2 (list or ndarray): Mean values of the second metric for each epoch.
+    - std_values2 (list or ndarray): Standard deviation of the second metric for each epoch.
+    - label2 (str): Label for the second metric, used in the legend.
+    - title (str): The title of the plot.
+    - ax (matplotlib.axes.Axes): The matplotlib Axes object on which the plot will be drawn.
 
-    Returns:
-    None: This function does not return anything but plots the metrics.
+    The function creates two line plots on the provided Axes object: one for each set of metrics. It also shades the area around each line according to the standard deviation of the metrics, providing a visual representation of their variability over time. The plot includes a legend, titles for the axes, and a main title.
+
+    Example Usage:
+    ```python
+    fig, ax = plt.subplots(figsize=(10, 6))
+    epochs = range(1, 11)
+    mean_acc = [0.8, 0.82, 0.85, 0.86, 0.87, 0.88, 0.89, 0.9, 0.91, 0.92]
+    std_acc = [0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+    mean_loss = [0.4, 0.35, 0.3, 0.25, 0.2, 0.18, 0.16, 0.14, 0.12, 0.1]
+    std_loss = [0.05, 0.04, 0.04, 0.03, 0.03, 0.02, 0.02, 0.02, 0.01, 0.01]
+    plot_two_metrics(epochs, mean_acc, std_acc, 'Accuracy', mean_loss, std_loss, 'Loss', 'Training Metrics', ax)
+    plt.show()
+    ```
     """
-    plt.figure(figsize=(10, 5))
-    plt.plot(epochs, mean_values1, label=f'Mean {label1}')
-    plt.fill_between(epochs, np.array(mean_values1) - np.array(std_values1), 
+    ax.plot(epochs, mean_values1, label=f'Mean {label1}')
+    ax.fill_between(epochs, np.array(mean_values1) - np.array(std_values1), 
                      np.array(mean_values1) + np.array(std_values1), alpha=0.2)
-    plt.plot(epochs, mean_values2, label=f'Mean {label2}', linestyle='--')
-    plt.fill_between(epochs, np.array(mean_values2) - np.array(std_values2), 
+    ax.plot(epochs, mean_values2, label=f'Mean {label2}', linestyle='--')
+    ax.fill_between(epochs, np.array(mean_values2) - np.array(std_values2), 
                      np.array(mean_values2) + np.array(std_values2), alpha=0.2, linestyle='--')
     
     # Setting the y-axis limits
     min_ylim = min(min(mean_values1), min(mean_values2))
     max_ylim = max(max(mean_values1), max(mean_values2))
     margin = 0.1 * (max_ylim - min_ylim)
-    plt.ylim(min_ylim - margin, max_ylim + margin)
+    ax.set_ylim(min_ylim - margin, max_ylim + margin)
     
-    plt.title(title)
-    plt.xlabel('Epochs')
-    plt.ylabel('Value')
-    plt.legend()
-    plt.show()
+    ax.set_title(title)
+    ax.set_xlabel('Epochs')
+    ax.set_ylabel('Value')
+    ax.legend()
