@@ -2,7 +2,7 @@ import sys
 
 # Import custom modules
 from modules.utils import plot_random_sample
-from modules.variables import path_to_all_models
+from modules.variables import path_to_all_models, path_to_plots
 
 def is_valid_number(n, max_value):
     """
@@ -39,6 +39,7 @@ if __name__ == "__main__":
 
     # Set up paths for logs and models
     path_to_models = path_to_all_models / input_path_to_models
+    path_to_plots.mkdir(parents=True, exist_ok=True)
 
     # Get the count of files in models directory to set an upper limit for n_plots_per_row
     num_files = len(list(path_to_models.glob('*')))
@@ -47,7 +48,7 @@ if __name__ == "__main__":
     if is_valid_number(n_plots_per_row_input, num_files):
         n_plots_per_row = int(n_plots_per_row_input)
         # Plot random sample of generated models
-        plot_random_sample(path_to_models, n_plots_per_row=n_plots_per_row)
+        plot_random_sample(path_to_models, path_to_plots, n_plots_per_row=n_plots_per_row)
     else:
         # Exit the program if the input is not valid
         sys.exit(1)

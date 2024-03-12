@@ -162,7 +162,7 @@ def indices_satisfying_condition(my_list, condition_func):
     
     return [index for index, element in enumerate(my_list) if condition_func(element)]
 
-def plot_random_sample(path_to_models, n_plots_per_row=3):
+def plot_random_sample(path_to_models, path_to_save, n_plots_per_row=3):
     """
     Reads a random sample of pickle files and plots them in an array of plots.
 
@@ -221,6 +221,9 @@ def plot_random_sample(path_to_models, n_plots_per_row=3):
     # Adjust layout and display the plots
     plt.tight_layout()
     plt.show()
+    # Save the last plot to the specified directory
+    plot_path = path_to_save / "plot_models.png"
+    plt.savefig(plot_path)
 
 # Example usage:
 # path_to_models = Path("/path/to/models")
