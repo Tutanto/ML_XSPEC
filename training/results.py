@@ -21,7 +21,7 @@ Output:
 """
 import numpy as np
 from joblib import load
-from xspec import AllModels, AllData, Model, Plot
+from xspec import FakeitSettings, AllModels, AllData, Model, Plot
 from tensorflow.keras.models import load_model
 
 import matplotlib.pyplot as plt
@@ -32,7 +32,6 @@ from modules.variables import (
     path_to_logs, 
     path_to_data, 
     path_to_plots,
-    path_to_samples, 
     path_to_results
 )
 
@@ -57,9 +56,11 @@ logger.debug(f"Model path: {model_file_path}")
 fluxes = []
 
 model_name = "TBabs*(rdblur*rfxconv*comptb + diskbb + comptb)"
+fs1 = FakeitSettings(response="files/ni5050300117mpu7.rmf", arf="files/ni5050300117mpu7.arf", exposure="1e5", fileName='test.fak')
 
-sample_scaled = np.load(path_to_samples / 'complete_sample.npy')
-relevant_par =  np.load(path_to_samples / 'relevant_par.npy')
+logger.debug("loading the sampled parameters")
+sample_scaled = np.load('files/complete_sample.npy')
+relevant_par =  np.load('files/relevant_par.npy')
 
 # Load scalers and normalize parameters if needed
 if 'norm' in model_file_path.name:
@@ -80,11 +81,10 @@ for i in range(sample_scaled.shape[0]):
 
 # Iterate through scaled samples to set up and save models
 for index, params in enumerate(sample_scaled):
-    
+    logger.debug(f"Creating spectrum # {index+1}")
     # Clear existing XSPEC models and data
     AllModels.clear()
     AllData.clear()
-    AllData.dummyrsp(0.5, 20.)
 
     # Initialize the model
     m = Model(model_name)
@@ -110,12 +110,15 @@ for index, params in enumerate(sample_scaled):
 
     # Add the model to the spectral analysis system and set parameters
     AllModels.setPars(m, {int(relevant_par[j]):params[j] for j in range(len(relevant_par))})
-
+    AllData.fakeit(1, fs1)
+    AllData.ignore('**-0.3')
+    AllData.ignore('10.-**')
+    
     # Set up the energy range of interest for plotting
     Plot.device = "/null"
     Plot.xAxis = "keV"
     Plot.show()
-    Plot('model')
+    Plot('data')
     energy = Plot.x()
     flux = Plot.model()
     fluxes.append(flux)
@@ -136,7 +139,7 @@ for par in looper:
     # Make predictions
     if 'norm' not in model_file_path.name:
         logger.debug('re-do the log10')
-        log_index = [0, 9, 12]
+        log_index = [12]
         for i in log_index:
             par[i] = np.log10(par[i])
     prediction = model.predict(par.reshape(-1, par.shape[0]))
@@ -180,14 +183,13 @@ for idx, true_flux in enumerate(fluxes):
     axes[row_index, col_index].plot(energy_reshape, true_flux_reshape, label="True")
     axes[row_index, col_index].plot(energy_reshape, predicted[idx][0], label='Predicted')
     axes[row_index, col_index].set_xlabel('Energy (keV)')
-    axes[row_index, col_index].set_ylabel('Flux (1 / keV cm^-2 s)')
+    axes[row_index, col_index].set_ylabel('Flux [counts / (keV s)]')
     axes[row_index, col_index].set_xscale('log')
     axes[row_index, col_index].set_yscale('log')
-    axes[row_index, col_index].set_ylim(1.e-1)
     axes[row_index, col_index].legend()    
 
 # Save the last plot to the specified directory
-plot_path = path_to_plots / "final_plot.png"
+plot_path = path_to_plots / "result_plot.png"
 plt.savefig(plot_path)
 logger.debug(f"Final plot saved to: {plot_path}")
 logger.debug("Script ended.")  # Log the end of the script    
