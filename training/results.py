@@ -37,13 +37,15 @@ from modules.variables import (
 
 # Define data and smoothing points
 data = 'models_100k'
+NN = 'GRU'
+arch = '256x4'
 n_points = 0
 
 # Set up paths for logs and models
 path_to_logs.mkdir(parents=True, exist_ok=True)
 path_to_plots.mkdir(parents=True, exist_ok=True)
-result_dir = path_to_results / 'GRU' / '256x4'
-model_file_path = result_dir / 'GRU_model_norm.h5'
+result_dir = path_to_results / NN / arch
+model_file_path = result_dir / f'{NN}_model_norm.h5'
 path_to_data_scaler = path_to_data / data
 
 # Set up log configuration and create a logger for the fit
@@ -189,7 +191,7 @@ for idx, true_flux in enumerate(fluxes):
     axes[row_index, col_index].legend()    
 
 # Save the last plot to the specified directory
-plot_path = path_to_plots / "result_plot.png"
+plot_path = path_to_plots / f"{NN}_{arch}_results.png"
 plt.savefig(plot_path)
 logger.debug(f"Final plot saved to: {plot_path}")
 logger.debug("Script ended.")  # Log the end of the script    

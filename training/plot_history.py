@@ -58,8 +58,8 @@ path_to_plots.mkdir(parents=True, exist_ok=True)
 logger = logging_conf(path_to_logs, f"plot_history.log")
 logger.debug("Script started.")
 
-model = 'GRU'
-model_name = '256x4'
+model = 'ANN'
+model_name = '256x6'
 model_dir = path_to_results / model
 logger.debug(f"Models: {model_dir}")
 
@@ -72,7 +72,7 @@ if history_filename.exists():
 else:
     logger.debug('No history')
 
-skip = 50
+skip = 10
 history_df = pd.DataFrame(existing_history)
 # Create a figure with subplots arranged in a 2x2 grid
 fig, axs = plt.subplots(2, 2, figsize=(15, 10))
