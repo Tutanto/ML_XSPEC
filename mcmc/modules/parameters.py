@@ -16,29 +16,27 @@ class Parameters:
         self.norm = norm
         self.Tin = Tin
         self.norm_disk = norm_disk
-        self.f_true = f_true
         
         # Ranges for each parameter (min, max)
         self.ranges = {
-            'nH': (-2, 1),
-            'Betor10': (-10, 0),
+            'nH': (0.1, 10),
+            'Betor10': (-3, -1),
             'Rin_M': (6, 150),
             'Incl': (0, 90),
             'rel_refl': (-1, 0),
             'Fe_abund': (0.5, 3.0),
             'log_xi': (1, 4),
-            'kTs': (0.15, 2.0),
-            'alpha': (0.1, 3.0),
-            'kTe': (np.log10(2), 3),
-            'norm': (0.1, 1.0),
-            'Tin': (0.1, 2.0),
-            'norm_disk': (-1, 4),
-            'f_true': (-2, 1)
+            'kTs': (0.1, 1.1),
+            'alpha': (0.1, 1.5),
+            'kTe': (1.1, 20),
+            'norm': (0.1, 10),
+            'Tin': (0.1, 1.1),
+            'norm_disk': (-1, 6)
         }
 
     def to_array(self):
         """ Convert parameters to an array. """
-        return np.array([self.nH, self.Betor10, self.Rin_M, self.Incl, self.rel_refl, self.Fe_abund, self.log_xi, self.kTs, self.alpha, self.kTe, self.norm, self.Tin, self.norm_disk, self.f_true])
+        return np.array([self.nH, self.Betor10, self.Rin_M, self.Incl, self.rel_refl, self.Fe_abund, self.log_xi, self.kTs, self.alpha, self.kTe, self.norm, self.Tin, self.norm_disk])
 
     def is_param_within_range(self, param_name):
         """ Check if a specific parameter is within its defined range. """
@@ -52,7 +50,7 @@ class Parameters:
         """ Update parameters from an array (e.g., the output of an optimization). """
         (self.nH, self.Betor10, self.Rin_M, self.Incl, self.rel_refl, 
          self.Fe_abund, self.log_xi, self.kTs, self.alpha, self.kTe, 
-         self.norm, self.Tin, self.norm_disk, self.f_true) = array
+         self.norm, self.Tin, self.norm_disk) = array
 
     def __repr__(self):
         """ String representation for easy debugging, one parameter per line. """

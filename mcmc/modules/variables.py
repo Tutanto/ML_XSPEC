@@ -18,19 +18,18 @@ path_to_all_models = root_dir / "all_models"
 
 # The "true" parameters.
 params = Parameters(
-    nH=np.log10(1.0), 
-    Betor10=-2, 
-    Rin_M=10, 
-    Incl=30, 
-    rel_refl=-0.5, 
-    Fe_abund=1, 
-    log_xi=2, 
-    kTs=1, 
-    alpha=2, 
-    kTe=np.log10(40), 
-    norm=0.5, 
-    Tin=1, 
-    norm_disk=np.log10(1), 
-    f_true=np.log10(0.2))
+    nH=0.257, 
+    Betor10=-1.754, 
+    Rin_M=11.68, 
+    Incl=42.96, 
+    rel_refl=-0.10, 
+    Fe_abund=2.908, 
+    log_xi=2.7793, 
+    kTs=0.5148, 
+    alpha=0.8595, 
+    kTe=2.0501, 
+    norm=1.79977, 
+    Tin=0.3018, 
+    norm_disk=np.log10(5.1879e5))
 
 par_original = params.to_array()
