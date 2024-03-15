@@ -47,6 +47,7 @@ path_to_plots.mkdir(parents=True, exist_ok=True)
 result_dir = path_to_results / NN / arch
 model_file_path = result_dir / f'{NN}_model_norm.h5'
 path_to_data_scaler = path_to_data / data
+path_to_files = path_to_data / 'files'
 
 # Set up log configuration and create a logger for the fit
 logger = logging_conf(path_to_logs, f"result_plot.log")
@@ -58,11 +59,11 @@ logger.debug(f"Model path: {model_file_path}")
 fluxes = []
 
 model_name = "TBabs*(rdblur*rfxconv*comptb + diskbb + comptb)"
-fs1 = FakeitSettings(response="files/ni5050300117mpu7.rmf", arf="files/ni5050300117mpu7.arf", exposure="1e5", fileName='test.fak')
+fs1 = FakeitSettings(response=path_to_files.__str__()+"/ni5050300117mpu7.rmf", arf=path_to_files.__str__()+"/ni5050300117mpu7.arf", exposure="1e5", fileName='test.fak')
 
 logger.debug("loading the sampled parameters")
-sample_scaled = np.load('files/complete_sample.npy')
-relevant_par =  np.load('files/relevant_par.npy')
+sample_scaled = np.load(path_to_files / 'complete_sample.npy')
+relevant_par =  np.load(path_to_files / 'relevant_par.npy')
 
 # Load scalers and normalize parameters if needed
 if 'norm' in model_file_path.name:
