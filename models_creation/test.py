@@ -19,4 +19,6 @@ Plot.xAxis = "keV"
 Plot.show()
 Plot('data')
 energy = Plot.x()
-flux = Plot.model()
+energy_e = Plot.xErr()
+flux = Plot.y()
+flux_e = Plot.yErr()
