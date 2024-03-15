@@ -1,7 +1,7 @@
 import numpy as np
 
 class Parameters:
-    def __init__(self, nH=np.log10(1.0), Betor10=-2, Rin_M=10, Incl=30, rel_refl=-1, Fe_abund=1, log_xi=1, kTs=2, alpha=2, kTe=np.log10(40), norm=1, Tin=1, norm_disk=np.log10(1), f_true=0.2):
+    def __init__(self, nH=1, Betor10=-2, Rin_M=10, Incl=30, rel_refl=-1, Fe_abund=1, log_xi=1, kTs=2, alpha=2, kTe=2, norm=1, Tin=1, norm_disk=np.log10(1), f_true=0.2):
         # Parameters
         self.nH = nH
         self.Betor10 = Betor10
@@ -16,6 +16,7 @@ class Parameters:
         self.norm = norm
         self.Tin = Tin
         self.norm_disk = norm_disk
+        self.f_true = f_true
         
         # Ranges for each parameter (min, max)
         self.ranges = {
@@ -31,12 +32,13 @@ class Parameters:
             'kTe': (1.1, 20),
             'norm': (0.1, 10),
             'Tin': (0.1, 1.1),
-            'norm_disk': (-1, 6)
+            'norm_disk': (-1, 6),
+            'f_true': (-5, 1)
         }
 
     def to_array(self):
         """ Convert parameters to an array. """
-        return np.array([self.nH, self.Betor10, self.Rin_M, self.Incl, self.rel_refl, self.Fe_abund, self.log_xi, self.kTs, self.alpha, self.kTe, self.norm, self.Tin, self.norm_disk])
+        return np.array([self.nH, self.Betor10, self.Rin_M, self.Incl, self.rel_refl, self.Fe_abund, self.log_xi, self.kTs, self.alpha, self.kTe, self.norm, self.Tin, self.norm_disk, self.f_true])
 
     def is_param_within_range(self, param_name):
         """ Check if a specific parameter is within its defined range. """
@@ -50,7 +52,7 @@ class Parameters:
         """ Update parameters from an array (e.g., the output of an optimization). """
         (self.nH, self.Betor10, self.Rin_M, self.Incl, self.rel_refl, 
          self.Fe_abund, self.log_xi, self.kTs, self.alpha, self.kTe, 
-         self.norm, self.Tin, self.norm_disk) = array
+         self.norm, self.Tin, self.norm_disk, self.f_true) = array
 
     def __repr__(self):
         """ String representation for easy debugging, one parameter per line. """
