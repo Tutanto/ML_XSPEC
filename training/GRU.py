@@ -40,10 +40,11 @@ Note: Adjust the 'neurons', 'layers', and 'epochs' variables as needed to optimi
 
 import json
 import datetime
+import shutil
 import numpy as np
 
 from tensorflow.keras.models import load_model
-from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from sklearn.model_selection import train_test_split
 from modules.network import r_squared, GRU_model
 from logging_config import logging_conf
@@ -65,29 +66,36 @@ logger.debug("Script started.")
 
 data = 'models_100k'
 neurons = 256
-layers = 4
-epochs = 200
+layers = 6
+epochs = 100
+batch_size = 16
+path_to_file_data = path_to_data / data
+input_file = path_to_file_data / 'Inp_norm.npy'
+output_file = path_to_file_data / 'Out_norm.npy'
 
-path_to_data = path_to_data / data
-logger.debug(f"Data: {path_to_data}")
+logger.debug(f"Data: {path_to_file_data}")
 log_dir = path_to_logs / 'fit'
 log_dir.mkdir(parents=True, exist_ok=True)
+checkpoint_dir = path_to_results / 'training'
+checkpoint_path = checkpoint_dir / "cp-{epoch:04d}.h5"
 # Define the path for the model file
 path_to_results.mkdir(parents=True, exist_ok=True)
-model_file_path = path_to_results / 'GRU_model.h5'
+if 'norm' in input_file.name:
+    model_file_path = path_to_results / 'GRU_model_norm.h5'
+else:
+    model_file_path = path_to_results / 'GRU_model.h5'
 
 # File paths for the saved datasets
-X_train_file = path_to_data / 'X_train_par.npy'
-y_train_file = path_to_data / 'y_train_flux.npy'
-X_val_file = path_to_data / 'X_val_par.npy'
-y_val_file = path_to_data / 'y_val_flux.npy'
-X_test_file = path_to_data / 'X_test_par.npy'
-y_test_file = path_to_data / 'y_test_flux.npy'
+X_train_file = path_to_file_data / 'X_train_par.npy'
+y_train_file = path_to_file_data / 'y_train_flux.npy'
+X_val_file = path_to_file_data / 'X_val_par.npy'
+y_val_file = path_to_file_data / 'y_val_flux.npy'
+X_test_file = path_to_file_data / 'X_test_par.npy'
+y_test_file = path_to_file_data / 'y_test_flux.npy'
 
-# Check if the model file exists
-if model_file_path.is_file() and X_train_file.is_file():
+# Check if the datasets files exist
+if X_train_file.is_file() and (model_file_path.is_file() or checkpoint_dir.is_dir()):
     # Load the datasets
-    logger.debug("Saved model found!")
     logger.debug("Loading the datasets...")
     # Load the datasets
     X_train_par = np.load(X_train_file, allow_pickle=True)
@@ -96,14 +104,23 @@ if model_file_path.is_file() and X_train_file.is_file():
     y_val_flux = np.load(y_val_file, allow_pickle=True)
     X_test_par = np.load(X_test_file, allow_pickle=True)
     y_test_flux = np.load(y_test_file, allow_pickle=True)
-    logger.debug("Loading the saved model...")
-    model = load_model(model_file_path, custom_objects={'r_squared': r_squared})
-    logger.debug(f"Model loaded: {model_file_path}")
+    if model_file_path.is_file():
+        logger.debug("Saved model found!")
+        logger.debug("Loading the saved model...")
+        model = load_model(model_file_path, custom_objects={'r_squared': r_squared})
+        logger.debug(f"Model loaded: {model_file_path}")
+    else:
+        logger.debug("Loading the latest checkpoint...")
+        srt = sorted(checkpoint_dir.glob('*')) 
+        latest = srt[-1]
+        logger.debug(f"Checkpoint loaded: {latest}")
+        model = load_model(latest, custom_objects={'r_squared': r_squared})
+        logger.debug("Model re-loaded")
 else:
     logger.debug("No saved model found. Using a new model...")
     # Load the datasets
-    X = np.load(path_to_data / 'Inp_norm.npy', allow_pickle=True)
-    Y = np.load(path_to_data / 'Out_norm.npy', allow_pickle=True)
+    X = np.load(input_file, allow_pickle=True)
+    Y = np.load(output_file, allow_pickle=True)
     logger.debug("Loaded input and output")
     # Split the data into training, validation, and test sets
     X_train_par, X_temp_par, y_train_flux, y_temp_flux = train_test_split(
@@ -124,7 +141,7 @@ else:
     np.save(y_val_file, y_val_flux)
     np.save(X_test_file, X_test_par)
     np.save(y_test_file, y_test_flux)
-    logger.debug(f"Datasets saved in: {path_to_data}")
+    logger.debug(f"Datasets saved in: {path_to_file_data}")
 
     # Define the neural network model
     logger.debug("Creating the model...")
@@ -134,6 +151,17 @@ else:
 # Create a TensorBoard instance with log directory
 tensorboard_callback = TensorBoard(log_dir=log_dir / f"log_{t_start}", histogram_freq=1)
 
+# Calculate the number of batches per epoch
+n_batches = len(X_test_par[0]) / batch_size
+n_batches = int(np.ceil(n_batches))    # round up the number of batches to the nearest whole integer
+
+# Create a callback that saves the model every 5 epochs
+cp_callback = ModelCheckpoint(
+    filepath=checkpoint_path.as_posix(), 
+    verbose=0, 
+    save_weights_only=False)
+    #save_freq=2*n_batches)
+
 # Train the model
 logger.debug(f"Neurons: {neurons}")
 logger.debug(f"Hidden Layers: {layers}")
@@ -141,8 +169,8 @@ logger.debug(f"Training for {epochs} epochs...")
 new_history = model.fit(
     X_train_par, y_train_flux,
     validation_data=(X_val_par, y_val_flux), 
-    epochs=epochs, batch_size=16,
-    callbacks=[tensorboard_callback],
+    epochs=epochs, batch_size=batch_size,
+    callbacks=[cp_callback, tensorboard_callback],
     verbose=1
 ).history
 logger.debug("End of training!")
@@ -150,9 +178,15 @@ logger.debug("End of training!")
 # Save (or update) the model
 model.save(model_file_path)
 logger.debug(f"Model saved in: {model_file_path}")
+# Remove the Checkpoints
+shutil.rmtree(checkpoint_dir)
+logger.debug(f"Checkpoints removed")
 
 # Load existing history if it exists
-history_filename = path_to_results / 'GRU_training_history.json'
+if 'norm' in input_file.name:
+    history_filename = path_to_results / 'GRU_training_history_norm.json'
+else:
+    history_filename = path_to_results / 'GRU_training_history.json'
 if history_filename.exists():
     with open(history_filename, 'r') as f:
         existing_history = json.load(f)

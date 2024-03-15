@@ -13,6 +13,7 @@ from modules.utils import (
     )
 from modules.variables import (
     path_to_logs,
+    path_to_data,
     path_to_models,
     path_to_samples,
     path_to_checkpoints
@@ -40,6 +41,7 @@ if __name__ == "__main__":
     path_to_checkpoints.mkdir(parents=True, exist_ok=True)
     sample_file_path = path_to_samples / sample_file_name
     index_file_path = path_to_checkpoints / index_file_name
+    path_to_files = path_to_data / 'files'
 
     # Get the current date and time
     t_start = datetime.datetime.now()
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     logger.debug("Script started.")
 
     model_name = "TBabs*(rdblur*rfxconv*comptb + diskbb + comptb)"
-    fs1 = FakeitSettings(response="files/ni5050300117mpu7.rmf", arf="files/ni5050300117mpu7.arf", exposure="1e5", fileName='test.fak')
+    fs1 = FakeitSettings(response=path_to_files.__str__()+"/ni5050300117mpu7.rmf", arf=path_to_files.__str__()+"/ni5050300117mpu7.arf", exposure="1e5", fileName='test.fak')
 
     logger.debug("Latin Hypercube exists already. Loading from disk.")
     sample_scaled = np.load(sample_file_path)
