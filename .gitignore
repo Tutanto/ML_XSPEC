@@ -1,6 +1,7 @@
 *.joblib
 *.json
 *.pkl
+*.out
 *.npy
 *.h5
 # Byte-compiled / optimized / DLL files
