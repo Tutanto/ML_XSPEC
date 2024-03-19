@@ -76,19 +76,18 @@ path_to_plots.mkdir(exist_ok=True)
 n_points = 1
 data = 'models_100k'
 path_to_data_scaler = path_to_data / data
-flux_scaler = load(path_to_data / 'flux_scaler.joblib') # Load the saved scaler
+flux_scaler = load(path_to_data_scaler / 'flux_scaler.joblib') # Load the saved scaler
 logger.debug(f"Reading Scalers from: {path_to_data_scaler}")
 
-result_dir = path_to_results / 'GRU' / '256x4'
-model_file_path = result_dir / 'GRU_model_norm.h5'
+result_dir = path_to_results / 'ANN' / '256x4'
+model_file_path = result_dir / 'ANN_model_norm.h5'
 model = load_model(model_file_path, custom_objects={'r_squared': r_squared})
 logger.debug(f"Reading Deep Learning model from: {model_file_path}")
 
-target_file_path = path_to_data_points / 'target'
-xd = np.load(target_file_path / 'energy_true.npy', allow_pickle=True)
-yd = np.load(target_file_path / 'y_true.npy', allow_pickle=True)
-yderr = np.load(target_file_path / 'yerr.npy', allow_pickle=True)
-logger.debug(f"Reading data points to fit from: {target_file_path}")
+xd = np.load(path_to_data_points / 'energy_true.npy', allow_pickle=True)
+yd = np.load(path_to_data_points / 'y_true.npy', allow_pickle=True)
+yderr = np.load(path_to_data_points / 'yerr.npy', allow_pickle=True)
+logger.debug(f"Reading data points to fit from: {path_to_data_points}")
 
 logger.debug(f"The true parameters are: {par_original}")
 
@@ -114,7 +113,7 @@ plot_path = path_to_plots / "quick_fit.png"
 plt.savefig(plot_path)
 logger.debug(f"Quick fit plot saved to: {plot_path}")
 
-init = par_ml
+init = par_original
 
 pos = init + 1e-4 * np.random.randn(128, len(init))
 nwalkers, ndim = pos.shape

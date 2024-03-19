@@ -1,5 +1,4 @@
 import numpy as np
-from  pathlib import Path
 import matplotlib.pyplot as plt
 
 from xspec import FakeitSettings, AllModels, AllData, Model, Plot
@@ -9,17 +8,17 @@ from logging_config import logging_conf
 from modules.variables import (
     path_to_data,
     path_to_logs,
-    path_to_plots
+    path_to_plots,
+    path_to_data_points
 )
 
 path_to_logs.mkdir(parents=True, exist_ok=True)
 path_to_plots.mkdir(parents=True, exist_ok=True)
-path_to_target = path_to_data / 'target'
-path_to_target.mkdir(parents=True, exist_ok=True)     # Create the data directory if it doesn't exist
+path_to_data_points.mkdir(parents=True, exist_ok=True)     # Create the data directory if it doesn't exist
 path_to_files = path_to_data / 'files'
 
 # Initialize the logging process
-logger = logging_conf(path_to_logs, "plot_history.log")
+logger = logging_conf(path_to_logs, "make_data.log")
 logger.debug("Script started.")
 
 # Clear existing XSPEC models and data
@@ -91,8 +90,8 @@ plt.savefig(path_to_plots / 'plot_target_model.png')
 logger.debug(f'Plot saved in {path_to_plots}')
 
 # Saving the data to disk
-np.save(path_to_target / 'energy_true.npy', energy)
-np.save(path_to_target / 'energy_error.npy', energy_err)
-np.save(path_to_target / 'y_true.npy', y)
-np.save(path_to_target / 'yerr.npy', yerr)
-logger.debug(f'File saved in {path_to_target}')
+np.save(path_to_data_points / 'energy_true.npy', energy)
+np.save(path_to_data_points / 'energy_error.npy', energy_err)
+np.save(path_to_data_points / 'y_true.npy', y)
+np.save(path_to_data_points / 'yerr.npy', yerr)
+logger.debug(f'File saved in {path_to_data_points}')
