@@ -56,13 +56,13 @@ from modules.variables import (
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-data = 'models_fakeit_100k'
+data = 'models_100k'
 # Parameters for k-fold validation
 k = 5  # Number of folds
 seed = 42  # Random seed for reproducibility
-neurons = 256
-layers = 4
-epochs = 250
+neurons = 128
+layers = 8
+epochs = 150
 
 # Initialize the logging process with timestamp
 t_start = datetime.datetime.now()
@@ -78,7 +78,7 @@ log_dir.mkdir(parents=True, exist_ok=True)
 
 # Load the datasets
 logger.debug("Loading the datasets...")
-X = np.load(path_to_data / 'Inp.npy', allow_pickle=True)
+X = np.load(path_to_data / 'Inp_norm.npy', allow_pickle=True)
 Y = np.load(path_to_data / 'Out_norm.npy', allow_pickle=True)
 
 # Initialize KFold
@@ -113,7 +113,7 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
         validation_data=(X_val, y_val), 
         epochs=epochs, batch_size=50,
         callbacks=[tensorboard_callback],
-        verbose=0
+        verbose=1
     )
 
     logger.debug(f"End of fold {fold+1}")
@@ -134,11 +134,11 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
     logger.debug("History updated")
 
 logger.debug("End of training!")
-model.save(path_to_results / 'ANN_model.h5')
+model.save(path_to_results / 'ANN_model_norm.h5')
 logger.debug(f"Model saved in: {path_to_results}")
 
 # Save merged history
-history_filename = path_to_results / 'ANN_training_history.json'
+history_filename = path_to_results / 'ANN_training_history_norm.json'
 with open(history_filename, 'w') as f:
     json.dump(histories, f)
 logger.debug(f"History saved: {history_filename}")
