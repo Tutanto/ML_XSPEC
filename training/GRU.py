@@ -65,9 +65,9 @@ logger = logging_conf(path_to_logs, f"GRU_{timestamp}.log")
 logger.debug("Script started.")
 
 data = 'models_100k'
-neurons = 256
+neurons = 64
 layers = 6
-epochs = 100
+epochs = 250
 batch_size = 16
 path_to_file_data = path_to_data / data
 input_file = path_to_file_data / 'Inp_norm.npy'
