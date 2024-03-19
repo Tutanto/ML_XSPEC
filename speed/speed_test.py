@@ -15,7 +15,7 @@ from modules.variables import (
     par_original
 )
 
-n_spec = 1
+n_spec = 1000
 # Define data
 data = 'models_100k'
 NN = 'GRU'
@@ -120,7 +120,7 @@ for i in range(n_spec):
 plt.figure(figsize=(10, 6))
 plt.errorbar(energy, y, yerr=yerr, fmt="o", color="cyan", ecolor='lightblue', elinewidth=3, capsize=0, label="XSPEC Model", alpha=0.5)
 plt.plot(energy, y_pred_d[0], "^-r", label="ML Model", linewidth=2, markersize=7, alpha=0.5)
-plt.legend(fontsize=14, loc='upper right', bbox_to_anchor=(1.1, 1.05))
+plt.legend(fontsize=14, loc='upper right')
 plt.grid(True, which="both", ls="--", linewidth=0.5)
 plt.tick_params(axis='both', which='major', labelsize=12)
 plt.xscale("log")
