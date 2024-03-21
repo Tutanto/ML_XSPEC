@@ -66,8 +66,8 @@ logger.debug("Script started.")
 
 data = 'models_100k'
 neurons = 64
-layers = 6
-epochs = 250
+layers = 4
+epochs = 50
 batch_size = 16
 path_to_file_data = path_to_data / data
 input_file = path_to_file_data / 'Inp_norm.npy'
@@ -145,7 +145,7 @@ else:
 
     # Define the neural network model
     logger.debug("Creating the model...")
-    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=neurons, hidden=layers)
+    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=neurons, hidden=layers, learning_rate=1.e-3)
     logger.debug("Model created")
     
 # Create a TensorBoard instance with log directory
@@ -159,8 +159,8 @@ n_batches = int(np.ceil(n_batches))    # round up the number of batches to the n
 cp_callback = ModelCheckpoint(
     filepath=checkpoint_path.as_posix(), 
     verbose=0, 
-    save_weights_only=False)
-    #save_freq=2*n_batches)
+    save_weights_only=False,
+    save_freq=5*n_batches)
 
 # Train the model
 logger.debug(f"Neurons: {neurons}")
