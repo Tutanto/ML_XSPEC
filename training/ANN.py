@@ -42,7 +42,7 @@ import datetime
 import numpy as np
 
 from sklearn.model_selection import KFold
-from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
 
 from modules.network import ANN_model
 from logging_config import logging_conf
@@ -60,9 +60,9 @@ data = 'models_100k'
 # Parameters for k-fold validation
 k = 5  # Number of folds
 seed = 42  # Random seed for reproducibility
-neurons = 128
-layers = 8
-epochs = 150
+neurons = 32
+layers = 6
+epochs = 250
 
 # Initialize the logging process with timestamp
 t_start = datetime.datetime.now()
@@ -86,6 +86,9 @@ kf = KFold(n_splits=k, shuffle=True, random_state=seed)
 histories = {'mean_absolute_error':[], 'mean_squared_error':[], 'r_squared':[],  
              'loss':[], 'val_mean_absolute_error':[], 'val_mean_squared_error': [], 
              'val_r_squared':[], 'val_loss':[]}
+
+# Early Stopping Callback configuration
+early_stopping = EarlyStopping(monitor='val_loss', patience=20, verbose=1, restore_best_weights=True)
 
 # Loop over each fold
 for fold, (train_index, val_index) in enumerate(kf.split(X)):
@@ -112,7 +115,7 @@ for fold, (train_index, val_index) in enumerate(kf.split(X)):
         X_train, y_train,
         validation_data=(X_val, y_val), 
         epochs=epochs, batch_size=50,
-        callbacks=[tensorboard_callback],
+        callbacks=[tensorboard_callback, early_stopping],
         verbose=1
     )
 
