@@ -44,7 +44,7 @@ import shutil
 import numpy as np
 
 from tensorflow.keras.models import load_model
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.model_selection import train_test_split
 from modules.network import r_squared, GRU_model
 from logging_config import logging_conf
@@ -67,15 +67,13 @@ logger.debug("Script started.")
 data = 'models_100k'
 neurons = 64
 layers = 4
-epochs = 50
+epochs = 100
 batch_size = 16
 path_to_file_data = path_to_data / data
 input_file = path_to_file_data / 'Inp_norm.npy'
 output_file = path_to_file_data / 'Out_norm.npy'
 
 logger.debug(f"Data: {path_to_file_data}")
-log_dir = path_to_logs / 'fit'
-log_dir.mkdir(parents=True, exist_ok=True)
 checkpoint_dir = path_to_results / 'training'
 checkpoint_path = checkpoint_dir / "cp-{epoch:04d}.h5"
 # Define the path for the model file
@@ -145,11 +143,17 @@ else:
 
     # Define the neural network model
     logger.debug("Creating the model...")
-    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=neurons, hidden=layers, learning_rate=1.e-3)
+    model = GRU_model(X_train_par.shape[1], y_train_flux.shape[1], neurons=neurons, hidden=layers, learning_rate=1.e-2)
     logger.debug("Model created")
-    
-# Create a TensorBoard instance with log directory
-tensorboard_callback = TensorBoard(log_dir=log_dir / f"log_{t_start}", histogram_freq=1)
+
+
+# EarlyStopping configuration
+early_stopping = EarlyStopping(
+    monitor='val_loss', 
+    patience=20, 
+    verbose=1, 
+    restore_best_weights=True
+)
 
 # Calculate the number of batches per epoch
 n_batches = len(X_test_par[0]) / batch_size
@@ -170,7 +174,8 @@ new_history = model.fit(
     X_train_par, y_train_flux,
     validation_data=(X_val_par, y_val_flux), 
     epochs=epochs, batch_size=batch_size,
-    callbacks=[cp_callback, tensorboard_callback],
+    callbacks=[cp_callback],
+#    callbacks=[cp_callback, early_stopping],
     verbose=1
 ).history
 logger.debug("End of training!")
