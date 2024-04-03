@@ -7,6 +7,7 @@ from tensorflow.keras.models import load_model
 from xspec import FakeitSettings, AllModels, AllData, Model, Plot
 
 from modules.network import r_squared
+from general import save_figure
 
 from modules.variables import (
     path_to_data,
@@ -106,11 +107,11 @@ if 'norm' in model_file_path.name:
 flux_scaler = load(path_to_data_scaler / 'flux_scaler.joblib')
 predicted = []
 predicted_times = []
+model = load_model(model_file_path, custom_objects={'r_squared': r_squared})
 
 for i in range(n_spec):
     start_time = time.time()
     # Load the deep learning model
-    model = load_model(model_file_path, custom_objects={'r_squared': r_squared})
     model_par = parameters
     y_pred = model.predict(model_par.reshape(-1, model_par.shape[0]), verbose=0)
     y_pred_d = flux_scaler.inverse_transform(y_pred)
@@ -129,7 +130,8 @@ plt.xlabel("E (keV)", fontsize=14)
 plt.ylabel("counts / (keV s)", fontsize=14)
 plt.title("Comparison of XSPEC and ML Model Predictions", fontsize=16)
 plt.tight_layout()  # Adjust the plot to ensure everything fits without overlapping
-plt.savefig(path_to_plots / "spectra.png")
+#plt.savefig(path_to_plots / "spectra.png")
+save_figure(path_to_plots / "spectra.png")
     
 # Histogram
 plt.figure(figsize=(10, 6))
@@ -140,6 +142,7 @@ n_bins = max(len(set(times)), len(set(predicted_times)))  # Suggested dynamic bi
 plt.hist(times, bins=n_bins, alpha=0.7, label='Times XSPEC', color='blue', edgecolor='black', histtype='stepfilled')
 plt.hist(predicted_times, bins=n_bins, alpha=0.7, label='Times ML', color='orange', edgecolor='black', histtype='stepfilled')
 plt.yscale('log')
+plt.xscale('log')
 plt.xlabel('Time (s)', fontsize=14)
 plt.ylabel('Frequency', fontsize=14)
 plt.title('Times Distribution', fontsize=16)
@@ -147,5 +150,6 @@ plt.legend(fontsize=12)
 plt.grid(True, which='major', linestyle='--', linewidth=0.5, alpha=0.7)
 plt.tick_params(axis='both', which='major', labelsize=12)
 plt.tight_layout()  # Adjust the plot to ensure everything fits without overlapping
-plt.savefig(path_to_plots / "histogram.png")
+#plt.savefig(path_to_plots / "histogram.png")
+save_figure(path_to_plots / "histogram.png")
 plt.show()
