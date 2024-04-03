@@ -37,8 +37,8 @@ from modules.variables import (
 
 # Define data and smoothing points
 data = 'models_100k'
-NN = 'GRU'
-arch = '256x4'
+NN = 'ANN'
+arch = '128x8'
 n_points = 0
 
 # Set up paths for logs and models
